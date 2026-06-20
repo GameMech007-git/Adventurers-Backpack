@@ -30,9 +30,16 @@ public class BackpackKeyBindings {
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (OPEN_BACKPACK.consumeClick()) {
-                if (client.player != null && client.getConnection() != null) {
-                    ClientPlayNetworking.send(new OpenBackpackPayload());
+                if (client.player == null || client.getConnection() == null) {
+                    continue;
                 }
+
+                if (client.screen instanceof BackpackScreen) {
+                    client.player.closeContainer();
+                    continue;
+                }
+
+                ClientPlayNetworking.send(new OpenBackpackPayload());
             }
         });
     }

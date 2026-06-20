@@ -16,6 +16,11 @@ public class BackpackClientEvents {
             if (client.player == null) return;
 
             if (BackpackKeyBindings.OPEN_BACKPACK.consumeClick()) {
+                if (client.screen instanceof BackpackScreen) {
+                    client.player.closeContainer();
+                    return;
+                }
+
                 LOGGER.info("Backpack key pressed! Sending packet to server...");
                 ClientPlayNetworking.send(new OpenBackpackPayload());
             }

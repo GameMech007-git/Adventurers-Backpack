@@ -8,5 +8,13 @@
   "container.backpack-pro.backpack_netherite": "Backpack III",
 
     "key.backpack_pro.open_backpack": "Open Backpack",
-  "key.category.backpack_pro.general": "Backpack Pro"
+  "key.category.backpack_pro.general": "Backpack Pro",
+
+  "item.backpack-pro.lantern_hook": "Lantern Hook Upgrade",
+  "item.backpack-pro.auto_pickup": "Auto Pickup Upgrade",
+  "item.backpack-pro.food_pouch": "Food Pouch Upgrade",
+  "item.backpack-pro.fluid_storage": "Fluid Storage Upgrade",
+  "item.backpack-pro.restock": "Restock Upgrade",
+  "item.backpack-pro.extra_storage": "Extra Storage Upgrade",
+  "item.backpack-pro.crafting": "Crafting Upgrade"
 }

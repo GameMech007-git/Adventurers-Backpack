@@ -1,5 +1,6 @@
 package com.anantaya.backpackpro.event;
 
+import com.anantaya.backpackpro.backpack.BackpackTier;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.minecraft.core.HolderLookup;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.anantaya.backpackpro.BackpackItem;
+import com.anantaya.backpackpro.backpack.BackpackItem;
 
 import java.util.Optional;
 
@@ -73,14 +74,14 @@ public class BackpackDeathEventHandler {
                 if (newDur <= 0) {
                     System.out.println("[Backpack] Durability reached 0 — destroying backpack");
 
-                    // 1.21: read NBT via CustomData component
+
                     CustomData customData = backpack.get(DataComponents.CUSTOM_DATA);
 if (customData != null) {
     CompoundTag tag = customData.copyTag();
 
     if (tag.contains("Inventory")) {
         CompoundTag invTag = tag.getCompound("Inventory").orElse(new CompoundTag());
-        int slotCount = ((BackpackItem) backpack.getItem()).getTier().slotCount;
+        int slotCount = ((BackpackItem) backpack.getItem()).getTier().totalSlots;
 
         for (int s = 0; s < slotCount; s++) {
             String key = "Slot" + s;
@@ -165,7 +166,9 @@ if (customData != null) {
                         CompoundTag invTag = tag.getCompound("Inventory").orElse(new CompoundTag());
 
                         List<String> occupiedSlots = new ArrayList<>();
-                        for (int s = 0; s < 5; s++) {
+                        BackpackTier tier = ((BackpackItem) stack.getItem()).getTier();
+
+                        for (int s = 0; s < tier.protectedSlots; s++) {
                             if (invTag.contains("Slot" + s)) {
                                 occupiedSlots.add("Slot" + s);
                             }
@@ -176,7 +179,6 @@ if (customData != null) {
                                     player.getRandom().nextInt(occupiedSlots.size())
                             );
 
-                            // 1.21: parse ItemStack with registry access
                             ItemStack toDrop = ItemStack.EMPTY;
 
 Optional<CompoundTag> itemTagOptional = invTag.getCompound(randomKey);
@@ -193,7 +195,6 @@ if (!toDrop.isEmpty()) {
 }
                             invTag.remove(randomKey);
 
-                            // Write modified tag back to the component
                             tag.put("Inventory", invTag);
                             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 

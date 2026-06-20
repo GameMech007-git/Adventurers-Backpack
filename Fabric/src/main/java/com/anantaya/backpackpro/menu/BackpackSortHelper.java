@@ -1,0 +1,233 @@
+package com.anantaya.backpackpro.menu;
+
+import com.anantaya.backpackpro.backpack.BackpackTier;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+public final class BackpackSortHelper {
+
+    private BackpackSortHelper() {
+    }
+
+    public static boolean sortNormalStorage(
+            Container inventory,
+            BackpackTier tier
+    ) {
+        int start = tier.normalStart();
+        int end = tier.upgradeStart();
+
+        List<ItemStack> collected = collectNormalStorageStacks(
+                inventory,
+                start,
+                end
+        );
+
+        if (collected.isEmpty()) {
+            return false;
+        }
+
+        List<ItemStack> merged = mergeCompatibleStacks(collected);
+        merged.sort(STACK_COMPARATOR);
+
+        return writeSortedStacks(
+                inventory,
+                start,
+                end,
+                merged
+        );
+    }
+
+    private static List<ItemStack> collectNormalStorageStacks(
+            Container inventory,
+            int start,
+            int end
+    ) {
+        List<ItemStack> stacks = new ArrayList<>();
+
+        for (int slot = start; slot < end; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            stacks.add(stack.copy());
+        }
+
+        return stacks;
+    }
+
+    private static List<ItemStack> mergeCompatibleStacks(
+            List<ItemStack> input
+    ) {
+        List<ItemStack> merged = new ArrayList<>();
+
+        for (ItemStack source : input) {
+            ItemStack remaining = source.copy();
+
+            mergeIntoExistingStacks(merged, remaining);
+
+            while (!remaining.isEmpty()) {
+                int moveAmount = Math.min(
+                        remaining.getMaxStackSize(),
+                        remaining.getCount()
+                );
+
+                ItemStack split = remaining.copy();
+                split.setCount(moveAmount);
+
+                remaining.shrink(moveAmount);
+                merged.add(split);
+            }
+        }
+
+        return merged;
+    }
+
+    private static void mergeIntoExistingStacks(
+            List<ItemStack> merged,
+            ItemStack remaining
+    ) {
+        for (ItemStack existing : merged) {
+            if (remaining.isEmpty()) {
+                return;
+            }
+
+            if (!ItemStack.isSameItemSameComponents(existing, remaining)) {
+                continue;
+            }
+
+            int space = existing.getMaxStackSize() - existing.getCount();
+
+            if (space <= 0) {
+                continue;
+            }
+
+            int moveAmount = Math.min(space, remaining.getCount());
+
+            existing.grow(moveAmount);
+            remaining.shrink(moveAmount);
+        }
+    }
+
+    private static boolean writeSortedStacks(
+            Container inventory,
+            int start,
+            int end,
+            List<ItemStack> sortedStacks
+    ) {
+        boolean changed = false;
+        int outputIndex = 0;
+
+        for (int slot = start; slot < end; slot++) {
+            ItemStack newStack = outputIndex < sortedStacks.size()
+                    ? sortedStacks.get(outputIndex).copy()
+                    : ItemStack.EMPTY;
+
+            ItemStack oldStack = inventory.getItem(slot);
+
+            if (!ItemStack.matches(oldStack, newStack)) {
+                inventory.setItem(slot, newStack);
+                changed = true;
+            }
+
+            outputIndex++;
+        }
+
+        return changed;
+    }
+
+    private static final Comparator<ItemStack> STACK_COMPARATOR =
+            Comparator
+                    .comparingInt(BackpackSortHelper::category)
+                    .thenComparingInt(BackpackSortHelper::registryId)
+                    .thenComparingInt(BackpackSortHelper::damageSortValue)
+                    .thenComparing(BackpackSortHelper::componentSortValue)
+                    .thenComparing(Comparator.comparingInt(ItemStack::getCount).reversed());
+
+    private static int category(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 999;
+        }
+
+        /*
+         * 26.1.2 is component-driven.
+         * Prefer components over old class-name checks.
+         */
+
+        if (stack.has(DataComponents.TOOL)) {
+            return 10;
+        }
+
+        if (stack.has(DataComponents.WEAPON)
+                || stack.has(DataComponents.KINETIC_WEAPON)) {
+            return 20;
+        }
+
+        if (stack.has(DataComponents.EQUIPPABLE)) {
+            return 30;
+        }
+
+        if (stack.has(DataComponents.BLOCKS_ATTACKS)) {
+            return 40;
+        }
+
+        if (stack.getItem() instanceof BlockItem) {
+            return 50;
+        }
+
+        if (stack.has(DataComponents.FOOD)
+                || stack.has(DataComponents.CONSUMABLE)) {
+            return 60;
+        }
+
+        if (stack.isDamageableItem()) {
+            return 70;
+        }
+
+        if (stack.getMaxStackSize() == 1) {
+            return 80;
+        }
+
+        return 100;
+    }
+
+    private static int registryId(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
+
+        return BuiltInRegistries.ITEM.getId(stack.getItem());
+    }
+
+    private static int damageSortValue(ItemStack stack) {
+        if (!stack.isDamageableItem()) {
+            return 0;
+        }
+
+        /*
+         * Lower damage first = better durability first.
+         * If you want damaged tools first, reverse this.
+         */
+        return stack.getDamageValue();
+    }
+
+    private static String componentSortValue(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return "";
+        }
+
+        /*
+         * This separates enchanted/damaged/custom-component variants
+         * after registry id without merging incompatible stacks.
+         */
+        return stack.getComponentsPatch().toString();
+    }
+}

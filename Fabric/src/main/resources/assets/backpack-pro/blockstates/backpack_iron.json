@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "backpack-pro:block/backpack_iron"
+    },
+    "facing=east": {
+      "model": "backpack-pro:block/backpack_iron",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "backpack-pro:block/backpack_iron",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "backpack-pro:block/backpack_iron",
+      "y": 270
+    }
+  }
+}

@@ -1,22 +1,22 @@
 package com.anantaya.backpackpro.network;
 
+import com.anantaya.backpackpro.*;
+import com.anantaya.backpackpro.backpack.BackpackItem;
+import com.anantaya.backpackpro.backpack.BackpackScreenHandler;
+import com.anantaya.backpackpro.backpack.BackpackTier;
+import com.anantaya.backpackpro.upgrade.BackpackUpgradeConfigAction;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-
-import com.anantaya.backpackpro.BackpackItem;
-import com.anantaya.backpackpro.BackpackPro;
-import com.anantaya.backpackpro.BackpackScreenHandler;
-import com.anantaya.backpackpro.BackpackTier;
 
 public class BackpackNetworking {
 
     public static void register() {
-        // Register the payload type first (Client to Server - SERVERBOUND)
         PayloadTypeRegistry.serverboundPlay().register(OpenBackpackPayload.TYPE, OpenBackpackPayload.CODEC);
         
         ServerPlayNetworking.registerGlobalReceiver(
@@ -25,17 +25,126 @@ public class BackpackNetworking {
 
                     ServerPlayer player = context.player();
 
-                    // run on server thread
-                    context.server().execute(() -> openBackpackMenu(player));
+                    context.server().execute(() -> {
+                        BackpackPro.LOGGER.info(
+                                "[Backpack] OpenBackpackPayload received. Current menu = {}",
+                                player.containerMenu.getClass().getName()
+                        );
+
+                        openBackpackMenu(player);
+                    });
+                }
+        );
+
+        PayloadTypeRegistry.serverboundPlay().register(
+                UpgradeConfigPayload.TYPE,
+                UpgradeConfigPayload.CODEC
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                UpgradeConfigPayload.TYPE,
+                (payload, context) -> {
+                    ServerPlayer player = context.player();
+
+                    context.server().execute(() -> {
+                        AbstractContainerMenu menu = player.containerMenu;
+
+                        if (!(menu instanceof BackpackScreenHandler backpackMenu)) {
+                            return;
+                        }
+
+                        BackpackUpgradeConfigAction action =
+                                BackpackUpgradeConfigAction.byId(payload.actionId());
+
+                        backpackMenu.handleUpgradeConfigAction(
+                                payload.upgradeSlotIndex(),
+                                action
+                        );
+                    });
+                }
+        );
+
+        PayloadTypeRegistry.serverboundPlay().register(
+                FluidStoragePayload.TYPE,
+                FluidStoragePayload.CODEC
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                FluidStoragePayload.TYPE,
+                (payload, context) -> {
+                    ServerPlayer player = context.player();
+
+                    context.server().execute(() -> {
+                        AbstractContainerMenu menu = player.containerMenu;
+
+                        if (!(menu instanceof BackpackScreenHandler backpackMenu)) {
+                            return;
+                        }
+
+                        backpackMenu.handleFluidStorageClick(player);
+                    });
+                }
+        );
+
+        PayloadTypeRegistry.serverboundPlay().register(
+                BackpackTrashPayload.TYPE,
+                BackpackTrashPayload.CODEC
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                BackpackTrashPayload.TYPE,
+                (payload, context) -> {
+                    ServerPlayer player = context.player();
+
+                    context.server().execute(() -> {
+                        AbstractContainerMenu menu = player.containerMenu;
+
+                        if (!(menu instanceof BackpackScreenHandler backpackMenu)) {
+                            return;
+                        }
+
+                        backpackMenu.handleTrashClick();
+                    });
+                }
+        );
+
+        PayloadTypeRegistry.serverboundPlay().register(
+                BackpackSortPayload.TYPE,
+                BackpackSortPayload.CODEC
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                BackpackSortPayload.TYPE,
+                (payload, context) -> {
+                    ServerPlayer player = context.player();
+
+                    context.server().execute(() -> {
+                        AbstractContainerMenu menu = player.containerMenu;
+
+                        if (!(menu instanceof BackpackScreenHandler backpackMenu)) {
+                            return;
+                        }
+
+                        backpackMenu.handleSortNormalStorage(player);
+                    });
                 }
         );
     }
 
+
+
+
+
     private static void openBackpackMenu(ServerPlayer player) {
+        if (player.containerMenu instanceof BackpackScreenHandler) {
+            player.closeContainer();
+            return;
+        }
+
         Inventory inv = player.getInventory();
 
         ItemStack foundStack = null;
-        int foundSlot        = -1;
+        int foundSlot = -1;
 
         // ── Check main inventory ───────────────────────────────────────────
         for (int i = 0; i < 36; i++) {
@@ -78,8 +187,14 @@ public class BackpackNetworking {
                     if (latest.isEmpty() || !(latest.getItem() instanceof BackpackItem)) {
                         latest = ref;
                     }
-                    return new BackpackScreenHandler(syncId, playerInv, latest, tier,
-        p.level().registryAccess());
+                    return new BackpackScreenHandler(
+                            syncId,
+                            playerInv,
+                            latest,
+                            tier,
+                            p.level().registryAccess(),
+                            slot
+                    );
                 },
                 Component.literal(title)
         ));
