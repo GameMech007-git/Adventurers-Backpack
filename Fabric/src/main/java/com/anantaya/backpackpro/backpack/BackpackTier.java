@@ -2,9 +2,9 @@ package com.anantaya.backpackpro.backpack;
 
 public enum BackpackTier {
 
-    IRON(5, 9, 2, 3),
-    DIAMOND(9, 18, 4, 5),
-    NETHERITE(18, 27, 6, 20);
+    IRON(5, 27, 2, 3),
+    DIAMOND(9, 36, 4, 5),
+    NETHERITE(18, 45, 6, 20);
 
     public static final int MAX_UPGRADE_SLOTS = 6;
 

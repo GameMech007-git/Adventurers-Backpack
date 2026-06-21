@@ -88,6 +88,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 this,
                 inventory,
                 backpackStack,
+                null,
                 tier
         );
 
@@ -202,6 +203,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 this,
                 inventory,
                 backpackStack,
+                blockEntity,
                 tier
         );
 
@@ -433,9 +435,12 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
             return;
         }
 
-        boolean changed = BackpackSortHelper.sortNormalStorage(
+        boolean changed = BackpackSortHelper.sortAllSections(
                 inventory,
-                tier
+                tier,
+                extraStorageInventory,
+                canUseExtraStorageSlots(),
+                player.getInventory()
         );
 
         if (!changed) {
@@ -447,6 +452,12 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         } else {
             inventory.setChanged();
         }
+
+        if (extraStorageInventory != null) {
+            extraStorageInventory.setChanged();
+        }
+
+        player.getInventory().setChanged();
 
         this.broadcastChanges();
     }

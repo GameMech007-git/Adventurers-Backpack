@@ -138,9 +138,9 @@ public final class BackpackMenuLayout {
 
     public static int extraStorageSlotsForTier(BackpackTier tier) {
         return switch (tier) {
-            case IRON -> 9;
-            case DIAMOND -> 18;
-            case NETHERITE -> 27;
+            case IRON -> 15;
+            case DIAMOND -> 24;
+            case NETHERITE -> 36;
         };
     }
 

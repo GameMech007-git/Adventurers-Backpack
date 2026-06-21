@@ -22,7 +22,18 @@ public final class BackpackScreenPanels {
 
     private static final int TRASH_SIZE = 18;
     private static final int FLUID_PANEL_WIDTH = 30;
-    private static final int FLUID_PANEL_HEIGHT = 110;
+    private static int fluidPanelHeight(BackpackScreen screen) {
+        int capacity = BackpackFluidStorageHelper.capacityForTier(screen.handler().tier);
+
+        int barTopFromPanelTop = 30;
+        int segmentH = 6;
+        int segmentGap = 1;
+        int bottomPadding = 8;
+
+        int barH = capacity * segmentH + (capacity - 1) * segmentGap;
+
+        return barTopFromPanelTop + barH + bottomPadding;
+    }
 
     private BackpackScreenPanels() {
     }
@@ -44,7 +55,8 @@ public final class BackpackScreenPanels {
                 getFluidPanelY(screen),
                 type,
                 amount,
-                BackpackFluidStorageHelper.CAPACITY_BUCKETS
+                BackpackFluidStorageHelper.capacityForTier(screen.handler().tier),
+                fluidPanelHeight(screen)
         );
     }
 
@@ -248,7 +260,7 @@ public final class BackpackScreenPanels {
         return mouseX >= x
                 && mouseX < x + FLUID_PANEL_WIDTH
                 && mouseY >= y
-                && mouseY < y + FLUID_PANEL_HEIGHT;
+                && mouseY < y + fluidPanelHeight(screen);
     }
 
     private static void drawFluidStorageTooltip(
@@ -268,7 +280,7 @@ public final class BackpackScreenPanels {
                 mouseX >= panelX
                         && mouseX < panelX + FLUID_PANEL_WIDTH
                         && mouseY >= panelY
-                        && mouseY < panelY + FLUID_PANEL_HEIGHT;
+                        && mouseY < panelY + fluidPanelHeight(screen);
 
         if (!hoveringPanel) {
             return;
@@ -276,7 +288,7 @@ public final class BackpackScreenPanels {
 
         FluidStorageType type = screen.handler().getSyncedFluidType();
         int amount = screen.handler().getSyncedFluidAmount();
-        int capacity = BackpackFluidStorageHelper.CAPACITY_BUCKETS;
+        int capacity = BackpackFluidStorageHelper.capacityForTier(screen.handler().tier);
 
         Component fluidLine = Component.literal("Stored: "
                 + formatFluidName(type)

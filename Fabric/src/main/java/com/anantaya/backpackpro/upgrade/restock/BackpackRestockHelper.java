@@ -129,6 +129,7 @@ public final class BackpackRestockHelper {
                     hotbarSlot,
                     current,
                     backpackStack,
+                    tier,
                     memory
             )) {
                 changed = true;
@@ -285,6 +286,7 @@ public final class BackpackRestockHelper {
             int hotbarSlot,
             ItemStack current,
             ItemStack backpackStack,
+            BackpackTier tier,
             PlayerRestockMemory memory
     ) {
         if (current.isEmpty()) {
@@ -309,7 +311,8 @@ public final class BackpackRestockHelper {
 
         if (!BackpackFluidStorageHelper.withdrawOneBucket(
                 backpackStack,
-                rememberedFluid
+                rememberedFluid,
+                tier
         )) {
             cooldownSlot(player, slotMemory);
             return false;

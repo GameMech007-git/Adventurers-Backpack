@@ -2,6 +2,7 @@ package com.anantaya.backpackpro.upgrade.fluidstorage;
 
 import com.anantaya.backpackpro.backpack.BackpackInventory;
 import com.anantaya.backpackpro.backpack.BackpackTier;
+import com.anantaya.backpackpro.block.entity.BackpackBlockEntity;
 import com.anantaya.backpackpro.upgrade.BackpackUpgradeHelper;
 import com.anantaya.backpackpro.upgrade.BackpackUpgradeItem;
 import net.minecraft.server.level.ServerLevel;
@@ -13,23 +14,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jspecify.annotations.Nullable;
 
 public final class BackpackFluidMenuHandler {
 
     private final AbstractContainerMenu menu;
     private final Container inventory;
     private final ItemStack backpackStack;
+    private final @Nullable BackpackBlockEntity blockEntity;
     private final BackpackTier tier;
 
     public BackpackFluidMenuHandler(
             AbstractContainerMenu menu,
             Container inventory,
             ItemStack backpackStack,
+            @Nullable BackpackBlockEntity blockEntity,
             BackpackTier tier
     ) {
         this.menu = menu;
         this.inventory = inventory;
         this.backpackStack = backpackStack;
+        this.blockEntity = blockEntity;
         this.tier = tier;
     }
 
@@ -38,7 +43,7 @@ public final class BackpackFluidMenuHandler {
             return;
         }
 
-        if (backpackStack.isEmpty()) {
+        if (!hasFluidTarget()) {
             return;
         }
 
@@ -87,23 +92,116 @@ public final class BackpackFluidMenuHandler {
             return;
         }
 
+        saveFluidTarget();
+        menu.broadcastChanges();
+    }
+
+    private boolean hasFluidTarget() {
+        return !backpackStack.isEmpty() || blockEntity != null;
+    }
+
+    private FluidStorageType getStoredType() {
+        if (blockEntity != null) {
+            return blockEntity.getFluidType();
+        }
+
+        return BackpackFluidStorageHelper.getType(backpackStack);
+    }
+
+    private int getStoredAmount() {
+        if (blockEntity != null) {
+            return blockEntity.getFluidAmount();
+        }
+
+        return BackpackFluidStorageHelper.getAmount(backpackStack);
+    }
+
+    private boolean canInsertFluid(FluidStorageType insertedType) {
+        if (insertedType == FluidStorageType.NONE) {
+            return false;
+        }
+
+        int amount = getStoredAmount();
+
+        if (amount >= BackpackFluidStorageHelper.capacityForTier(tier)) {
+            return false;
+        }
+
+        FluidStorageType currentType = getStoredType();
+
+        return amount <= 0
+                || currentType == FluidStorageType.NONE
+                || currentType == insertedType;
+    }
+
+    private boolean insertOneBucket(FluidStorageType insertedType) {
+        if (!canInsertFluid(insertedType)) {
+            return false;
+        }
+
+        int newAmount = getStoredAmount() + 1;
+
+        if (blockEntity != null) {
+            blockEntity.setFluidStorage(insertedType, newAmount);
+            return true;
+        }
+
+        return BackpackFluidStorageHelper.insertOneBucket(
+                backpackStack,
+                insertedType,
+                tier
+        );
+    }
+
+    private boolean withdrawOneBucket(FluidStorageType requestedType) {
+        if (requestedType == FluidStorageType.NONE) {
+            return false;
+        }
+
+        if (getStoredAmount() <= 0) {
+            return false;
+        }
+
+        if (getStoredType() != requestedType) {
+            return false;
+        }
+
+        int newAmount = getStoredAmount() - 1;
+
+        if (blockEntity != null) {
+            if (newAmount <= 0) {
+                blockEntity.setFluidStorage(FluidStorageType.NONE, 0);
+            } else {
+                blockEntity.setFluidStorage(requestedType, newAmount);
+            }
+
+            return true;
+        }
+
+        return BackpackFluidStorageHelper.withdrawOneBucket(
+                backpackStack,
+                requestedType,
+                tier
+        );
+    }
+
+    private void saveFluidTarget() {
         if (inventory instanceof BackpackInventory backpackInventory) {
             backpackInventory.saveToData();
         } else {
             inventory.setChanged();
         }
 
-        menu.broadcastChanges();
+        if (blockEntity != null) {
+            blockEntity.setChanged();
+        }
     }
 
     private boolean tryInsertFluidBucket(
             Player player,
             FluidStorageType insertedType
     ) {
-        if (!BackpackFluidStorageHelper.insertOneBucket(
-                backpackStack,
-                insertedType
-        )) {
+        if (!insertOneBucket(insertedType)) {
             return false;
         }
 
@@ -120,7 +218,7 @@ public final class BackpackFluidMenuHandler {
             return false;
         }
 
-        FluidStorageType storedType = BackpackFluidStorageHelper.getType(backpackStack);
+        FluidStorageType storedType = getStoredType();
 
         if (storedType == FluidStorageType.NONE) {
             return false;
@@ -129,7 +227,7 @@ public final class BackpackFluidMenuHandler {
         ItemStack filledBucket = new ItemStack(storedType.filledBucketItem());
 
         if (carried.getCount() == 1) {
-            if (!BackpackFluidStorageHelper.withdrawOneBucket(backpackStack, storedType)) {
+            if (!withdrawOneBucket(storedType)) {
                 return false;
             }
 
@@ -142,7 +240,7 @@ public final class BackpackFluidMenuHandler {
             return false;
         }
 
-        if (!BackpackFluidStorageHelper.withdrawOneBucket(backpackStack, storedType)) {
+        if (!withdrawOneBucket(storedType)) {
             return false;
         }
 

@@ -157,7 +157,8 @@ public class BackpackBlockEntity extends BlockEntity {
         BackpackFluidStorageHelper.setFluid(
                 drop,
                 this.fluidType,
-                this.fluidAmount
+                this.fluidAmount,
+                this.tier
         );
 
         return drop;
@@ -286,7 +287,7 @@ public class BackpackBlockEntity extends BlockEntity {
     public void setFluidStorage(FluidStorageType type, int amount) {
         this.fluidType = type == null ? FluidStorageType.NONE : type;
         this.fluidAmount = Math.max(0, Math.min(
-                BackpackFluidStorageHelper.CAPACITY_BUCKETS,
+                BackpackFluidStorageHelper.capacityForTier(this.tier),
                 amount
         ));
 
@@ -332,7 +333,7 @@ public class BackpackBlockEntity extends BlockEntity {
         );
 
         this.fluidAmount = Math.max(0, Math.min(
-                BackpackFluidStorageHelper.CAPACITY_BUCKETS,
+                BackpackFluidStorageHelper.capacityForTier(this.tier),
                 input.getInt("FluidAmount").orElse(0)
         ));
 

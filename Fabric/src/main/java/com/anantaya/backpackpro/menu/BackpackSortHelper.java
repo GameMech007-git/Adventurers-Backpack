@@ -20,10 +20,21 @@ public final class BackpackSortHelper {
             Container inventory,
             BackpackTier tier
     ) {
-        int start = tier.normalStart();
-        int end = tier.upgradeStart();
+        return sortContainerRange(
+                inventory,
+                tier.normalStart(),
+                tier.upgradeStart(),
+                STACK_COMPARATOR
+        );
+    }
 
-        List<ItemStack> collected = collectNormalStorageStacks(
+    public static boolean sortContainerRange(
+            Container inventory,
+            int start,
+            int end,
+            Comparator<ItemStack> comparator
+    ) {
+        List<ItemStack> collected = collectStacks(
                 inventory,
                 start,
                 end
@@ -34,7 +45,7 @@ public final class BackpackSortHelper {
         }
 
         List<ItemStack> merged = mergeCompatibleStacks(collected);
-        merged.sort(STACK_COMPARATOR);
+        merged.sort(comparator);
 
         return writeSortedStacks(
                 inventory,
@@ -44,11 +55,11 @@ public final class BackpackSortHelper {
         );
     }
 
-    private static List<ItemStack> collectNormalStorageStacks(
+    private static List<ItemStack> collectStacks(
             Container inventory,
             int start,
             int end
-    ) {
+    ){
         List<ItemStack> stacks = new ArrayList<>();
 
         for (int slot = start; slot < end; slot++) {
@@ -152,6 +163,14 @@ public final class BackpackSortHelper {
                     .thenComparing(BackpackSortHelper::componentSortValue)
                     .thenComparing(Comparator.comparingInt(ItemStack::getCount).reversed());
 
+    private static final Comparator<ItemStack> HOTBAR_STACK_COMPARATOR =
+            Comparator
+                    .comparingInt(BackpackSortHelper::hotbarCategory)
+                    .thenComparingInt(BackpackSortHelper::registryId)
+                    .thenComparingInt(BackpackSortHelper::damageSortValue)
+                    .thenComparing(BackpackSortHelper::componentSortValue)
+                    .thenComparing(Comparator.comparingInt(ItemStack::getCount).reversed());
+
     private static int category(ItemStack stack) {
         if (stack.isEmpty()) {
             return 999;
@@ -199,6 +218,36 @@ public final class BackpackSortHelper {
         return 100;
     }
 
+    private static int hotbarCategory(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 999;
+        }
+
+        // Tools / weapons / armor / shields first
+        if (stack.has(DataComponents.TOOL)
+                || stack.has(DataComponents.WEAPON)
+                || stack.has(DataComponents.KINETIC_WEAPON)
+                || stack.has(DataComponents.EQUIPPABLE)
+                || stack.has(DataComponents.BLOCKS_ATTACKS)
+                || stack.isDamageableItem()
+                || stack.getMaxStackSize() == 1) {
+            return 10;
+        }
+
+        // Food second
+        if (stack.has(DataComponents.FOOD)
+                || stack.has(DataComponents.CONSUMABLE)) {
+            return 20;
+        }
+
+        // Blocks third
+        if (stack.getItem() instanceof BlockItem) {
+            return 30;
+        }
+
+        return 100;
+    }
+
     private static int registryId(ItemStack stack) {
         if (stack.isEmpty()) {
             return Integer.MAX_VALUE;
@@ -229,5 +278,54 @@ public final class BackpackSortHelper {
          * after registry id without merging incompatible stacks.
          */
         return stack.getComponentsPatch().toString();
+    }
+
+    public static boolean sortAllSections(
+            Container backpackInventory,
+            BackpackTier tier,
+            Container extraStorageInventory,
+            boolean sortExtraStorage,
+            Container playerInventory
+    ) {
+        boolean changed = false;
+
+        changed |= sortContainerRange(
+                backpackInventory,
+                0,
+                tier.protectedSlots,
+                STACK_COMPARATOR
+        );
+
+        changed |= sortContainerRange(
+                backpackInventory,
+                tier.normalStart(),
+                tier.upgradeStart(),
+                STACK_COMPARATOR
+        );
+
+        if (sortExtraStorage && extraStorageInventory != null) {
+            changed |= sortContainerRange(
+                    extraStorageInventory,
+                    0,
+                    extraStorageInventory.getContainerSize(),
+                    STACK_COMPARATOR
+            );
+        }
+
+        changed |= sortContainerRange(
+                playerInventory,
+                9,
+                36,
+                STACK_COMPARATOR
+        );
+
+        changed |= sortContainerRange(
+                playerInventory,
+                0,
+                9,
+                HOTBAR_STACK_COMPARATOR
+        );
+
+        return changed;
     }
 }

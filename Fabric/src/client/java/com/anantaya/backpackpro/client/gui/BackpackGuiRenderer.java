@@ -347,10 +347,10 @@ public final class BackpackGuiRenderer {
             int y,
             FluidStorageType type,
             int amount,
-            int capacity
+            int capacity,
+            int panelH
     ) {
         int panelW = 30;
-        int panelH = 110;
 
         drawSectionBox(graphics, x, y, panelW, panelH);
 
@@ -362,7 +362,7 @@ public final class BackpackGuiRenderer {
         int barX = fakeSlotX + 1;
         int barY = fakeSlotY + 24;
         int barW = 16;
-        int segmentH = 8;
+        int segmentH = 6;
         int gap = 1;
 
         int barH = capacity * segmentH + (capacity - 1) * gap;
