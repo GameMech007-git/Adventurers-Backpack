@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "adventurersbackpack:item/lantern_hook_upgrade"
+  }
+}

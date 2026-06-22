@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "has_iron_backpack_materials": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:iron_ingot"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "adventurersbackpack:backpack_iron"
+    ]
+  }
+}
