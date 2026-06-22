@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " R ",
+    " C ",
+    " B "
+  ],
+  "key": {
+    "R": "minecraft:redstone",
+    "C": "minecraft:comparator",
+    "B": "adventurersbackpack:upgrade_base"
+  },
+  "result": {
+    "id": "adventurersbackpack:restock",
+    "count": 1
+  }
+}

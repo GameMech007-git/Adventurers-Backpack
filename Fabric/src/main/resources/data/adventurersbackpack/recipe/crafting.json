@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " R ",
+    " T ",
+    " B "
+  ],
+  "key": {
+    "R": "minecraft:redstone",
+    "T": "minecraft:crafting_table",
+    "B": "adventurersbackpack:upgrade_base"
+  },
+  "result": {
+    "id": "adventurersbackpack:crafting",
+    "count": 1
+  }
+}

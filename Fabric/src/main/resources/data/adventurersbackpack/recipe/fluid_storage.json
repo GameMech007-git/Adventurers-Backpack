@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " G ",
+    " B ",
+    " U "
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "B": "minecraft:bucket",
+    "U": "adventurersbackpack:upgrade_base"
+  },
+  "result": {
+    "id": "adventurersbackpack:fluid_storage",
+    "count": 1
+  }
+}

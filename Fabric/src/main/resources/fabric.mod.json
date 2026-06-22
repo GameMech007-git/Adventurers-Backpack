@@ -1,36 +1,36 @@
 {
 	"schemaVersion": 1,
-	"id": "backpack-pro",
+	"id": "adventurersbackpack",
 	"version": "${version}",
-	"name": "BackPack Pro",
+	"name": "Adventurer's Backpack",
 	"description": "Vanilla Friendly, Three-tier backpack mod",
 	"authors": [
 		"GameMech007!"
 	],
 	"contact": {
-		"homepage": "https://modrinth.com/mod/backpack-pro",
-		"sources": "https://github.com/gamemech007/backpack-pro",
-		"issues": "https://github.com/gamemech007/backpack-pro/issues"
+		"homepage": "https://modrinth.com/mod/adventurersbackpack",
+		"sources": "https://github.com/gamemech007/adventurersbackpack",
+		"issues": "https://github.com/gamemech007/adventurersbackpack/issues"
 	},
 	"license": "Apache-2.0",
-	"icon": "assets/backpack-pro/icon.png",
+	"icon": "assets/adventurersbackpack/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.anantaya.backpackpro.BackpackPro"
+			"com.anantaya.adventurersbackpack.AdventurersBackpack"
 		],
 		"client": [
-			"com.anantaya.backpackpro.client.BackpackClient"
+			"com.anantaya.adventurersbackpack.client.BackpackClient"
 		],
 
 		"lambdynlights:initializer": [
-			"com.anantaya.backpackpro.compat.BackpackDynamicLights"
+			"com.anantaya.adventurersbackpack.compat.BackpackDynamicLights"
 		]
 	},
 	"mixins": [
-		"backpack-pro.mixins.json",
+		"adventurersbackpack.mixins.json",
 		{
-			"config": "backpack-pro.client.mixins.json",
+			"config": "adventurersbackpack.client.mixins.json",
 			"environment": "client"
 		}
 	],

@@ -1,0 +1,25 @@
+{
+  "criteria": {
+    "has_base_upgrade": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "adventurersbackpack:upgrade_base"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "adventurersbackpack:lantern_hook",
+      "adventurersbackpack:restock",
+      "adventurersbackpack:food_pouch",
+      "adventurersbackpack:auto_pickup",
+      "adventurersbackpack:crafting",
+      "adventurersbackpack:extra_storage",
+      "adventurersbackpack:fluid_storage"
+    ]
+  }
+}
