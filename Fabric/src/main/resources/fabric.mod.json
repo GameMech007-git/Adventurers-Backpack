@@ -8,11 +8,11 @@
 		"GameMech007!"
 	],
 	"contact": {
-		"homepage": "https://modrinth.com/mod/adventurersbackpack",
-		"sources": "https://github.com/gamemech007/adventurersbackpack",
-		"issues": "https://github.com/gamemech007/adventurersbackpack/issues"
+		"homepage": "https://modrinth.com/mod/adventurers-backpack",
+		"sources": "https://github.com/GameMech007-git/Adventurers-Backpack",
+		"issues": "https://github.com/GameMech007-git/Adventurers-Backpack/issues"
 	},
-	"license": "Apache-2.0",
+	"license": "All Rights Reserved",
 	"icon": "assets/adventurersbackpack/icon.png",
 	"environment": "*",
 	"entrypoints": {
