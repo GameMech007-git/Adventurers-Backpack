@@ -410,7 +410,9 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
             BackpackUpgradeConfigAction action
     ) {
         BackpackUpgradeConfigDispatcher.apply(
+                menuPlayer,
                 inventory,
+                extraStorageInventory,
                 tier,
                 upgradeSlotIndex,
                 action

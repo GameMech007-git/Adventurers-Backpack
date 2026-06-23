@@ -50,7 +50,8 @@ public final class BackpackScreenUpgradePanel {
     public boolean mouseClicked(
             BackpackScreen screen,
             int mouseX,
-            int mouseY
+            int mouseY,
+            boolean shiftDown
     ) {
         Slot slot = getSelectedUpgradeSlot(screen);
 
@@ -60,15 +61,23 @@ public final class BackpackScreenUpgradePanel {
 
         ItemStack stack = slot.getItem();
 
-        return UpgradeConfigPanel.mouseClicked(
+        boolean handled = UpgradeConfigPanel.mouseClicked(
                 stack,
                 selectedUpgradeSlot,
                 getConfigPanelX(screen),
                 getConfigPanelY(screen, slot),
                 mouseX,
                 mouseY,
+                shiftDown,
                 screen::sendConfigAction
         );
+        if (handled
+                && stack.getItem() instanceof BackpackUpgradeItem upgradeItem
+                && upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE) {
+            screen.closeAfterRecallAction();
+        }
+
+        return handled;
     }
 
     private Slot getSelectedUpgradeSlot(BackpackScreen screen) {
@@ -107,6 +116,7 @@ public final class BackpackScreenUpgradePanel {
 
         return upgradeItem.getType() == BackpackUpgradeItem.Type.AUTO_PICKUP
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.FOOD_POUCH
-                || upgradeItem.getType() == BackpackUpgradeItem.Type.RESTOCK;
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.RESTOCK
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE;
     }
 }

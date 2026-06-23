@@ -32,6 +32,16 @@ public final class UpgradeConfigPanel {
     private static final int SECOND_BUTTON_W = 10;
     private static final int SECOND_BUTTON_H = 10;
 
+    private static final int RECALL_PANEL_W = 44;
+    private static final int RECALL_PANEL_H = 18;
+
+    private static final int RECALL_HOME_X = 5;
+    private static final int RECALL_WAYPOINT_1_X = 17;
+    private static final int RECALL_WAYPOINT_2_X = 29;
+    private static final int RECALL_BUTTON_Y = 4;
+    private static final int RECALL_BUTTON_W = 10;
+    private static final int RECALL_BUTTON_H = 10;
+
     private static final Identifier AUTO_MODE_OFF =
             texture("config/auto_mode_off");
 
@@ -77,6 +87,15 @@ public final class UpgradeConfigPanel {
     private static final Identifier RESTOCK_TOOLS_OFF =
             texture("config/restock_tools_off");
 
+    private static final Identifier RECALL_HOME =
+            texture("config/recall_home");
+
+    private static final Identifier RECALL_WAYPOINT_1 =
+            texture("config/recall_waypoint_1");
+
+    private static final Identifier RECALL_WAYPOINT_2 =
+            texture("config/recall_waypoint_2");
+
     private UpgradeConfigPanel() {
     }
 
@@ -90,6 +109,26 @@ public final class UpgradeConfigPanel {
             int mouseY
     ) {
         if (!(upgradeStack.getItem() instanceof BackpackUpgradeItem upgradeItem)) {
+            return;
+        }
+
+        if (upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE) {
+            BackpackGuiRenderer.drawConfigPanel(
+                    graphics,
+                    panelX,
+                    panelY,
+                    RECALL_PANEL_W,
+                    RECALL_PANEL_H
+            );
+
+            drawRecallRunePanel(
+                    graphics,
+                    panelX,
+                    panelY,
+                    mouseX,
+                    mouseY
+            );
+
             return;
         }
 
@@ -139,10 +178,23 @@ public final class UpgradeConfigPanel {
             int panelY,
             int mouseX,
             int mouseY,
+            boolean shiftDown,
             ActionSender sender
     ) {
         if (!(upgradeStack.getItem() instanceof BackpackUpgradeItem upgradeItem)) {
             return false;
+        }
+
+        if (upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE) {
+            return mouseClickedRecallRune(
+                    upgradeSlotIndex,
+                    panelX,
+                    panelY,
+                    mouseX,
+                    mouseY,
+                    shiftDown,
+                    sender
+            );
         }
 
         int modeX = panelX + MODE_BUTTON_X;
@@ -428,6 +480,171 @@ public final class UpgradeConfigPanel {
         if (isInside(mouseX, mouseY, secondX, secondY, SECOND_BUTTON_W, SECOND_BUTTON_H)) {
             graphics.setTooltipForNextFrame(
                     Component.literal("Restock buckets: " + (buckets ? "On" : "Off")),
+                    mouseX,
+                    mouseY
+            );
+        }
+    }
+
+    private static void drawRecallRunePanel(
+            GuiGraphicsExtractor graphics,
+            int panelX,
+            int panelY,
+            int mouseX,
+            int mouseY
+    ) {
+        BackpackGuiRenderer.drawTextureButton(
+                graphics,
+                RECALL_HOME,
+                panelX + RECALL_HOME_X,
+                panelY + RECALL_BUTTON_Y,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        );
+
+        BackpackGuiRenderer.drawTextureButton(
+                graphics,
+                RECALL_WAYPOINT_1,
+                panelX + RECALL_WAYPOINT_1_X,
+                panelY + RECALL_BUTTON_Y,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        );
+
+        BackpackGuiRenderer.drawTextureButton(
+                graphics,
+                RECALL_WAYPOINT_2,
+                panelX + RECALL_WAYPOINT_2_X,
+                panelY + RECALL_BUTTON_Y,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        );
+
+        drawRecallRuneTooltip(
+                graphics,
+                mouseX,
+                mouseY,
+                panelX,
+                panelY
+        );
+    }
+
+    private static boolean mouseClickedRecallRune(
+            int upgradeSlotIndex,
+            int panelX,
+            int panelY,
+            int mouseX,
+            int mouseY,
+            boolean shiftDown,
+            ActionSender sender
+    ) {
+        int buttonY = panelY + RECALL_BUTTON_Y;
+
+        if (isInside(
+                mouseX,
+                mouseY,
+                panelX + RECALL_HOME_X,
+                buttonY,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        )) {
+            sender.send(
+                    upgradeSlotIndex,
+                    shiftDown
+                            ? BackpackUpgradeConfigAction.SET_RECALL_HOME
+                            : BackpackUpgradeConfigAction.TELEPORT_RECALL_HOME
+            );
+            return true;
+        }
+
+        if (isInside(
+                mouseX,
+                mouseY,
+                panelX + RECALL_WAYPOINT_1_X,
+                buttonY,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        )) {
+            sender.send(
+                    upgradeSlotIndex,
+                    shiftDown
+                            ? BackpackUpgradeConfigAction.SET_RECALL_WAYPOINT_1
+                            : BackpackUpgradeConfigAction.TELEPORT_RECALL_WAYPOINT_1
+            );
+            return true;
+        }
+
+        if (isInside(
+                mouseX,
+                mouseY,
+                panelX + RECALL_WAYPOINT_2_X,
+                buttonY,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        )) {
+            sender.send(
+                    upgradeSlotIndex,
+                    shiftDown
+                            ? BackpackUpgradeConfigAction.SET_RECALL_WAYPOINT_2
+                            : BackpackUpgradeConfigAction.TELEPORT_RECALL_WAYPOINT_2
+            );
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void drawRecallRuneTooltip(
+            GuiGraphicsExtractor graphics,
+            int mouseX,
+            int mouseY,
+            int panelX,
+            int panelY
+    ) {
+        int buttonY = panelY + RECALL_BUTTON_Y;
+
+        if (isInside(
+                mouseX,
+                mouseY,
+                panelX + RECALL_HOME_X,
+                buttonY,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        )) {
+            graphics.setTooltipForNextFrame(
+                    Component.literal("Home: Click to teleport. Shift-click to bind."),
+                    mouseX,
+                    mouseY
+            );
+            return;
+        }
+
+        if (isInside(
+                mouseX,
+                mouseY,
+                panelX + RECALL_WAYPOINT_1_X,
+                buttonY,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        )) {
+            graphics.setTooltipForNextFrame(
+                    Component.literal("Waypoint I: Click to teleport. Shift-click to bind."),
+                    mouseX,
+                    mouseY
+            );
+            return;
+        }
+
+        if (isInside(
+                mouseX,
+                mouseY,
+                panelX + RECALL_WAYPOINT_2_X,
+                buttonY,
+                RECALL_BUTTON_W,
+                RECALL_BUTTON_H
+        )) {
+            graphics.setTooltipForNextFrame(
+                    Component.literal("Waypoint II: Click to teleport. Shift-click to bind."),
                     mouseX,
                     mouseY
             );

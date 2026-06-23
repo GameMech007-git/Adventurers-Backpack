@@ -17,5 +17,7 @@
   "item.adventurersbackpack.restock": "Restock Upgrade",
   "item.adventurersbackpack.extra_storage": "Extra Storage Upgrade",
   "item.adventurersbackpack.crafting": "Crafting Upgrade",
-  "item.adventurersbackpack.upgrade_base": " BackPack Upgrade Base"
+  "item.adventurersbackpack.upgrade_base": " BackPack Upgrade Base",
+  "item.adventurersbackpack.recall_rune": "Recall Rune Upgrade",
+  "item.adventurersbackpack.recall_shard": "Rune Shard"
 }

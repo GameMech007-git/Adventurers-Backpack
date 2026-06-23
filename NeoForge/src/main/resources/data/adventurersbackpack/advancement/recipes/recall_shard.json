@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "has_recall_rune": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "adventurersbackpack:recall_rune"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "adventurersbackpack:recall_shard"
+    ]
+  }
+}

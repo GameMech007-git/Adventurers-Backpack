@@ -72,8 +72,16 @@ public final class ModItems {
             BackpackUpgradeItem.Type.CRAFTING
     );
 
+    public static final DeferredItem<BackpackUpgradeItem> RECALL_RUNE= registerUpgradeItem(
+            "recall_rune",
+            BackpackUpgradeItem.Type.RECALL_RUNE
+    );
+
     public static final DeferredItem<Item> UPGRADE_BASE =
             ITEMS.registerSimpleItem("upgrade_base");
+
+    public static final DeferredItem<Item> RECALL_SHARD=
+            ITEMS.registerSimpleItem("recall_shard");
 
     private ModItems() {
     }

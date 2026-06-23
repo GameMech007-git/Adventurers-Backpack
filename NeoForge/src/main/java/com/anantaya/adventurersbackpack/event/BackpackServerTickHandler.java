@@ -2,6 +2,7 @@ package com.anantaya.adventurersbackpack.event;
 
 import com.anantaya.adventurersbackpack.upgrade.autopickup.BackpackAutoPickupHelper;
 import com.anantaya.adventurersbackpack.upgrade.foodpouch.BackpackFoodPouchHelper;
+import com.anantaya.adventurersbackpack.upgrade.recallrune.RecallRunePendingManager;
 import com.anantaya.adventurersbackpack.upgrade.restock.BackpackRestockHelper;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +20,8 @@ public final class BackpackServerTickHandler {
     }
 
     private static void onServerTick(ServerTickEvent.Pre event) {
+        RecallRunePendingManager.tick();
+
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             BackpackPlayerInventoryRules.enforceOneBackpack(player);
 

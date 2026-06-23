@@ -34,5 +34,7 @@ public final class ModCreativeTabs {
         event.accept(ModItems.EXTRA_STORAGE.get());
         event.accept(ModItems.CRAFTING.get());
         event.accept(ModItems.UPGRADE_BASE.get());
+        event.accept(ModItems.RECALL_RUNE.get());
+        event.accept(ModItems.RECALL_SHARD.get());
     }
 }
