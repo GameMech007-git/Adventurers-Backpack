@@ -46,6 +46,12 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
         this.layout = BackpackMenuLayout.of(handler.tier);
     }
 
+    public void closeAfterRecallAction() {
+        if (this.minecraft.player != null) {
+            this.minecraft.player.closeContainer();
+        }
+    }
+
     @Override
     protected void init() {
         super.init();

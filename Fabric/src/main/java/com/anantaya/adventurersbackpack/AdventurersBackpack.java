@@ -9,8 +9,10 @@ import com.anantaya.adventurersbackpack.registry.ModCreativeTabs;
 import com.anantaya.adventurersbackpack.registry.ModItems;
 import com.anantaya.adventurersbackpack.registry.ModMenus;
 
+import com.anantaya.adventurersbackpack.upgrade.recallrune.RecallRunePendingManager;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,10 @@ public class AdventurersBackpack implements ModInitializer {
         BackpackNetworking.register();
         BackpackDeathEventHandler.register();
         BackpackServerTickHandler.register();
+
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            RecallRunePendingManager.tick();
+        });
 
         LOGGER.info("Adventurer's Backpack loaded");
     }

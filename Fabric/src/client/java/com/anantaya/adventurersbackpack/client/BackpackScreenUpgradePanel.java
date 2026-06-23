@@ -61,7 +61,7 @@ public final class BackpackScreenUpgradePanel {
 
         ItemStack stack = slot.getItem();
 
-        return UpgradeConfigPanel.mouseClicked(
+        boolean handled = UpgradeConfigPanel.mouseClicked(
                 stack,
                 selectedUpgradeSlot,
                 getConfigPanelX(screen),
@@ -71,6 +71,14 @@ public final class BackpackScreenUpgradePanel {
                 shiftDown,
                 screen::sendConfigAction
         );
+
+        if (handled
+                && stack.getItem() instanceof BackpackUpgradeItem upgradeItem
+                && upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE) {
+            screen.closeAfterRecallAction();
+        }
+
+        return handled;
     }
 
     private Slot getSelectedUpgradeSlot(BackpackScreen screen) {
