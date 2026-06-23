@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "adventurersbackpack:block/backpack_iron"
+    },
+    "facing=east": {
+      "model": "adventurersbackpack:block/backpack_iron",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "adventurersbackpack:block/backpack_iron",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "adventurersbackpack:block/backpack_iron",
+      "y": 270
+    }
+  }
+}

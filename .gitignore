@@ -1,0 +1,55 @@
+# Gradle
+.gradle/
+build/
+out/
+run/
+bin/
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Eclipse
+.settings/
+.classpath
+.project
+
+# Java
+*.class
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Minecraft runtime/cache
+crash-reports/
+saves/
+screenshots/
+
+# Generated files
+generated/
+
+# Fabric / NeoForge caches
+remappedSrc/
+loom-cache/
+natives/
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*

@@ -1,0 +1,21 @@
+{
+  "item.adventurersbackpack.backpack_iron":      "Iron Backpack",
+  "item.adventurersbackpack.backpack_diamond":   "Diamond Backpack",
+  "item.adventurersbackpack.backpack_netherite": "Netherite Backpack",
+
+  "container.adventurersbackpack.backpack_iron":      "Backpack",
+  "container.adventurersbackpack.backpack_diamond":   "Backpack II",
+  "container.adventurersbackpack.backpack_netherite": "Backpack III",
+
+    "key.adventurers_backpack.open_backpack": "Open Backpack",
+  "key.category.adventurers_backpack.general": "Adventurer's BackPack",
+
+  "item.adventurersbackpack.lantern_hook": "Lantern Hook Upgrade",
+  "item.adventurersbackpack.auto_pickup": "Auto Pickup Upgrade",
+  "item.adventurersbackpack.food_pouch": "Food Pouch Upgrade",
+  "item.adventurersbackpack.fluid_storage": "Fluid Storage Upgrade",
+  "item.adventurersbackpack.restock": "Restock Upgrade",
+  "item.adventurersbackpack.extra_storage": "Extra Storage Upgrade",
+  "item.adventurersbackpack.crafting": "Crafting Upgrade",
+  "item.adventurersbackpack.upgrade_base": " BackPack Upgrade Base"
+}

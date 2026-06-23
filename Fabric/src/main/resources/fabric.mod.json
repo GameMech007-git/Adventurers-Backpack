@@ -1,0 +1,44 @@
+{
+	"schemaVersion": 1,
+	"id": "adventurersbackpack",
+	"version": "${version}",
+	"name": "Adventurer's Backpack",
+	"description": "Vanilla Friendly, Three-tier backpack mod",
+	"authors": [
+		"GameMech007!"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/adventurers-backpack",
+		"sources": "https://github.com/GameMech007-git/Adventurers-Backpack",
+		"issues": "https://github.com/GameMech007-git/Adventurers-Backpack/issues"
+	},
+	"license": "All Rights Reserved",
+	"icon": "assets/adventurersbackpack/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.anantaya.adventurersbackpack.AdventurersBackpack"
+		],
+		"client": [
+			"com.anantaya.adventurersbackpack.client.BackpackClient"
+		],
+
+		"lambdynlights:initializer": [
+			"com.anantaya.adventurersbackpack.compat.BackpackDynamicLights"
+		]
+	},
+	"mixins": [
+		"adventurersbackpack.mixins.json",
+		{
+			"config": "adventurersbackpack.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"lambdynlights": "*"
+	}
+}

@@ -1,0 +1,22 @@
+{
+  "criteria": {
+    "has_diamond_backpack_materials": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:diamond"
+          },
+          {
+            "items": "minecraft:amethyst_shard"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "adventurersbackpack:backpack_diamond"
+    ]
+  }
+}

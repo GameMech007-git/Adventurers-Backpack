@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "adventurersbackpack:item/extra_storage_upgrade"
+  }
+}
