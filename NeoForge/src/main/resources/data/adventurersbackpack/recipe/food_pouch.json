@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " L ",
+    " S ",
+    " B "
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "S": "minecraft:string",
+    "B": "adventurersbackpack:upgrade_base"
+  },
+  "result": {
+    "id": "adventurersbackpack:food_pouch",
+    "count": 1
+  }
+}

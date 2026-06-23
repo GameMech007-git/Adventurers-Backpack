@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "has_netherite_backpack_materials": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:netherite_ingot"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "adventurersbackpack:backpack_netherite"
+    ]
+  }
+}

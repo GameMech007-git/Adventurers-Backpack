@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "has_copper_and_redstone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:copper_ingot"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "adventurersbackpack:upgrade_base"
+    ]
+  }
+}

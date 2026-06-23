@@ -1,0 +1,43 @@
+
+license="${mod_license}"
+
+[[mods]] #mandatory
+
+modId="${mod_id}" #mandatory
+
+version="${mod_version}" #mandatory
+
+displayName="${mod_name}" #mandatory
+issueTrackerURL="https://github.com/GameMech007-git/Adventurers-Backpack/issues"
+displayURL="https://modrinth.com/mod/adventurers-backpack"
+logoFile="assets/adventurersbackpack/icon.png"
+authors="GameMech007!"
+description='''Vanilla Friendly, Three-tier backpack mod'''
+
+[modproperties."${mod_id}"."yumi:entrypoints"]
+"lambdynlights:initializer" = "com.anantaya.adventurersbackpack.compat.BackpackDynamicLights"
+
+[[mixins]]
+config="${mod_id}.mixins.json"
+
+[[dependencies.${mod_id}]] #optional
+
+    modId="neoforge" #mandatory
+
+    type="required" #mandatory
+
+    versionRange="[${neo_version},)" #mandatory
+
+    ordering="NONE"
+
+    side="BOTH"
+
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
