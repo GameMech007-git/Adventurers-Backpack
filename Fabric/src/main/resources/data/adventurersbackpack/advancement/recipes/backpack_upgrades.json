@@ -19,7 +19,8 @@
       "adventurersbackpack:auto_pickup",
       "adventurersbackpack:crafting",
       "adventurersbackpack:extra_storage",
-      "adventurersbackpack:fluid_storage"
+      "adventurersbackpack:fluid_storage",
+      "adventurersbackpack:recall_rune"
     ]
   }
 }

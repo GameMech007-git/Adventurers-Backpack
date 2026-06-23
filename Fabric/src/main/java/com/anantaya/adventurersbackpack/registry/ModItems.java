@@ -73,6 +73,16 @@ public final class ModItems {
             new Item.Properties()
     );
 
+    public static final Item RECALL_RUNE = registerUpgradeItem(
+            "recall_rune",
+            BackpackUpgradeItem.Type.RECALL_RUNE
+    );
+
+    public static final Item RECALL_SHARD = registerItem(
+            "recall_shard",
+            new Item.Properties()
+    );
+
     private ModItems() {
     }
 

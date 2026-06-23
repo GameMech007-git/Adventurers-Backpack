@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:diamond",
+    "minecraft:ender_pearl"
+  ],
+  "result": {
+    "id": "adventurersbackpack:recall_shard",
+    "count": 2
+  }
+}

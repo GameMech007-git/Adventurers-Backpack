@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "adventurersbackpack:item/recall_rune_upgrade"
+  }
+}

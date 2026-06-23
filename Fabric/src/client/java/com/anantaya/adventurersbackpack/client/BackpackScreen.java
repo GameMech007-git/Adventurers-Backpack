@@ -28,6 +28,7 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
 
     private boolean clickedFluidStorageFakeSlot = false;
     private boolean clickedTrashSlot = false;
+    private boolean shiftDown = false;
 
     public BackpackScreen(
             BackpackScreenHandler handler,
@@ -138,7 +139,8 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
         if (upgradePanel.mouseClicked(
                 this,
                 mouseX,
-                mouseY
+                mouseY,
+                shiftDown
         )) {
             return true;
         }
@@ -219,6 +221,8 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        this.shiftDown = event.hasShiftDown();
+
         if (event.key() == GLFW.GLFW_KEY_B) {
             if (this.minecraft.player != null) {
                 this.minecraft.player.closeContainer();
@@ -228,6 +232,12 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
         }
 
         return super.keyPressed(event);
+    }
+
+    @Override
+    public boolean keyReleased(KeyEvent event) {
+        this.shiftDown = event.hasShiftDown();
+        return super.keyReleased(event);
     }
 
     public BackpackMenuLayout layout() {

@@ -24,6 +24,8 @@ public final class ModCreativeTabs {
                     output.accept(ModItems.EXTRA_STORAGE);
                     output.accept(ModItems.CRAFTING);
                     output.accept(ModItems.UPGRADE_BASE);
+                    output.accept(ModItems.RECALL_RUNE);
+                    output.accept(ModItems.RECALL_SHARD);
 
                 });
     }
