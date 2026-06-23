@@ -111,6 +111,18 @@ Adds a portable crafting grid.
 
 Make torches, planks, tools, blocks, and emergency supplies without running back to a crafting table.
 
+### Recall Rune
+
+Bind a home point and two waypoint anchors, then recall back to them when your journey takes you too far from safety.
+
+The Recall Rune is made for miners, explorers, and travelers who want a way back without making teleporting feel free or overpowered.
+
+Shift-click a Recall Rune button to bind a location.
+Click a bound location to begin recalling.
+
+A useful upgrade for long mining trips, deep cave routes, remote build sites, and returning to important travel points without removing survival risk.
+
+
 ***
 
 ## Place It Down
