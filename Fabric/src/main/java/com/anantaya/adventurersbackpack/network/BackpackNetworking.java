@@ -129,6 +129,32 @@ public class BackpackNetworking {
                     });
                 }
         );
+
+        PayloadTypeRegistry.serverboundPlay().register(
+                CartographersCasePayload.TYPE,
+                CartographersCasePayload.CODEC
+        );
+
+        ServerPlayNetworking.registerGlobalReceiver(
+                CartographersCasePayload.TYPE,
+                (payload, context) -> {
+                    ServerPlayer player = context.player();
+
+                    context.server().execute(() -> {
+                        AbstractContainerMenu menu = player.containerMenu;
+
+                        if (!(menu instanceof BackpackScreenHandler backpackMenu)) {
+                            return;
+                        }
+
+                        backpackMenu.handleCartographersCaseClick(
+                                player,
+                                payload.upgradeSlotIndex(),
+                                payload.navigationSlot()
+                        );
+                    });
+                }
+        );
     }
 
 

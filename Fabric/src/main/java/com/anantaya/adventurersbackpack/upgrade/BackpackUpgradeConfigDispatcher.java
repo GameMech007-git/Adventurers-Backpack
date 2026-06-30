@@ -49,7 +49,7 @@ public final class BackpackUpgradeConfigDispatcher {
                     upgradeStack,
                     action
             );
-            case LANTERN_HOOK, FLUID_STORAGE, EXTRA_STORAGE, CRAFTING -> false;
+            case LANTERN_HOOK, FLUID_STORAGE, EXTRA_STORAGE, CRAFTING, CARTOGRAPHERS_CASE -> false;
         };
 
         if (!changed) {

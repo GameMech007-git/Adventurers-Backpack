@@ -12,7 +12,9 @@ public class BackpackUpgradeItem extends Item {
         FLUID_STORAGE,
         EXTRA_STORAGE,
         CRAFTING,
-        RECALL_RUNE
+        RECALL_RUNE,
+        CARTOGRAPHERS_CASE
+
     }
 
     private final Type type;

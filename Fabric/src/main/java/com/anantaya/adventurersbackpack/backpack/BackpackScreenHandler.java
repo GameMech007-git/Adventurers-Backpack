@@ -8,6 +8,8 @@ import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigAction;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigDispatcher;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseData;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import com.anantaya.adventurersbackpack.upgrade.crafting.BackpackCraftingMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.BlockBackpackContainer;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.BlockExtraStorageContainer;
@@ -151,6 +153,10 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 BackpackUpgradeItem.Type.CRAFTING,
                 tier
         );
+    }
+
+    public ItemStack getBackpackStackForClient() {
+        return backpackStack;
     }
 
     public boolean hasCraftingUpgradeSynced() {
@@ -531,6 +537,137 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         }
 
         return false;
+    }
+
+    public void handleCartographersCaseClick(
+            Player player,
+            int upgradeSlotIndex,
+            int navigationSlot
+    ) {
+        if (backpackStack.isEmpty()) {
+            return;
+        }
+
+        if (upgradeSlotIndex < 0 || upgradeSlotIndex >= this.slots.size()) {
+            return;
+        }
+
+        Slot upgradeSlot = this.slots.get(upgradeSlotIndex);
+        ItemStack upgradeStack = upgradeSlot.getItem();
+
+        if (!BackpackUpgradeHelper.isUpgrade(
+                upgradeStack,
+                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+        )) {
+            return;
+        }
+
+        if (navigationSlot == CartographersCaseHelper.DEATH_SIGNAL_SLOT) {
+            int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
+
+            CartographersCaseData.setActiveSlot(
+                    backpackStack,
+                    activeSlot == CartographersCaseHelper.DEATH_SIGNAL_SLOT
+                            ? CartographersCaseHelper.NO_ACTIVE_SLOT
+                            : CartographersCaseHelper.DEATH_SIGNAL_SLOT
+            );
+
+            this.broadcastChanges();
+            return;
+        }
+
+        if (!CartographersCaseHelper.isCompassSlotIndex(navigationSlot)) {
+            return;
+        }
+
+        int compassInventoryIndex =
+                CartographersCaseHelper.toCompassInventoryIndex(navigationSlot);
+
+        ItemStack carried = this.getCarried();
+        ItemStack stored = CartographersCaseData.getCompass(
+                backpackStack,
+                compassInventoryIndex,
+                player.level().registryAccess()
+        );
+
+        if (carried.isEmpty()) {
+            if (stored.isEmpty()) {
+                int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
+
+                CartographersCaseData.setActiveSlot(
+                        backpackStack,
+                        activeSlot == navigationSlot
+                                ? CartographersCaseHelper.NO_ACTIVE_SLOT
+                                : navigationSlot
+                );
+
+                this.broadcastChanges();
+                return;
+            }
+
+            this.setCarried(stored.copy());
+
+            CartographersCaseData.setCompass(
+                    backpackStack,
+                    compassInventoryIndex,
+                    ItemStack.EMPTY,
+                    player.level().registryAccess()
+            );
+
+            CartographersCaseData.setActiveSlot(
+                    backpackStack,
+                    navigationSlot
+            );
+
+            this.broadcastChanges();
+            return;
+        }
+
+        if (!CartographersCaseHelper.isValidLodestoneCompass(carried)) {
+            return;
+        }
+
+        ItemStack toStore = carried.copy();
+        toStore.setCount(1);
+
+        if (stored.isEmpty()) {
+            CartographersCaseData.setCompass(
+                    backpackStack,
+                    compassInventoryIndex,
+                    toStore,
+                    player.level().registryAccess()
+            );
+
+            carried.shrink(1);
+
+            if (carried.isEmpty()) {
+                this.setCarried(ItemStack.EMPTY);
+            }
+
+            CartographersCaseData.setActiveSlot(
+                    backpackStack,
+                    navigationSlot
+            );
+
+            this.broadcastChanges();
+            return;
+        }
+
+        CartographersCaseData.setCompass(
+                backpackStack,
+                compassInventoryIndex,
+                toStore,
+                player.level().registryAccess()
+        );
+
+        this.setCarried(stored.copy());
+
+        CartographersCaseData.setActiveSlot(
+                backpackStack,
+                navigationSlot
+        );
+
+        this.broadcastChanges();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.anantaya.adventurersbackpack.event;
 
 import com.anantaya.adventurersbackpack.upgrade.autopickup.BackpackAutoPickupHelper;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseServerTickHelper;
 import com.anantaya.adventurersbackpack.upgrade.foodpouch.BackpackFoodPouchHelper;
 
 import com.anantaya.adventurersbackpack.upgrade.restock.BackpackRestockHelper;
@@ -21,6 +22,7 @@ public final class BackpackServerTickHandler {
                 BackpackAutoPickupHelper.tick(player);
                 BackpackFoodPouchHelper.tick(player);
                 BackpackRestockHelper.tick(player);
+                CartographersCaseServerTickHelper.tick(player);
             }
         });
     }

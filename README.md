@@ -11,7 +11,7 @@ It is adventuring gear.
 
 ***
 
-[![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-ff5f5f?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/gamemech007)       [![GitHub](https://img.shields.io/badge/GitHub-GameMech007-181717?style=for-the-badge&logo=github)](https://github.com/GameMech007-git)    [![GitHub](https://img.shields.io/badge/GitHub-ISSUES-181717?style=for-the-badge&logo=github)](https://github.com/GameMech007-git/Adventurers-Backpack/issues)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/9yrCfgs2C) [![Support on Ko-fi](https://img.shields.io/badge/Support-Ko--fi-ff5f5f?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/gamemech007)       [![GitHub](https://img.shields.io/badge/GitHub-GameMech007-181717?style=for-the-badge&logo=github)](https://github.com/GameMech007-git)    [![GitHub](https://img.shields.io/badge/GitHub-ISSUES-181717?style=for-the-badge&logo=github)](https://github.com/GameMech007-git/Adventurers-Backpack/issues)
 
 ***
 
@@ -122,7 +122,6 @@ Click a bound location to begin recalling.
 
 A useful upgrade for long mining trips, deep cave routes, remote build sites, and returning to important travel points without removing survival risk.
 
-
 ***
 
 ## Place It Down
@@ -148,22 +147,21 @@ That is the core idea of the mod:
 ## Good For
 
  Mining expeditions
-    
+
    Cave exploration
-    
+
    Nether travel
-    
+
    Building projects
-    
+
    Resource gathering
-    
+
    Adventure maps
-    
+
  Survival worlds
  Multiplayer servers
-    
+
  Vanilla-style modpacks
-    
 
 ***
 
@@ -180,10 +178,9 @@ Have an idea for an upgrade or a feature that would fit the mod? Share it in the
 ### Required
 
 Fabric API
-    
+
    LambDynamicLights  
     Used for the Lantern Hook upgrade.
-    
 
 ***
 

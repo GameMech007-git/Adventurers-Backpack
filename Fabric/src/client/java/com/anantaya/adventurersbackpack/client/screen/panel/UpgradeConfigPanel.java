@@ -1,16 +1,21 @@
 package com.anantaya.adventurersbackpack.client.screen.panel;
 
+import com.anantaya.adventurersbackpack.network.CartographersCasePayload;
 import com.anantaya.adventurersbackpack.upgrade.autopickup.AutoPickupMode;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigAction;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseData;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import com.anantaya.adventurersbackpack.upgrade.config.RestockConfig;
 import com.anantaya.adventurersbackpack.upgrade.foodpouch.FoodPouchMode;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiRenderer;
 
 import com.anantaya.adventurersbackpack.upgrade.config.AutoPickupConfig;
 import com.anantaya.adventurersbackpack.upgrade.config.FoodPouchConfig;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
@@ -42,6 +47,15 @@ public final class UpgradeConfigPanel {
     private static final int RECALL_BUTTON_Y = 4;
     private static final int RECALL_BUTTON_W = 10;
     private static final int RECALL_BUTTON_H = 10;
+
+    private static final int CARTOGRAPHER_PANEL_W = 64;
+    private static final int CARTOGRAPHER_PANEL_H = 64;
+
+    private static final int CARTOGRAPHER_SLOT_SIZE = 18;
+    private static final int CARTOGRAPHER_GRID_X = 5;
+    private static final int CARTOGRAPHER_GRID_Y = 5;
+
+    private static final int CARTOGRAPHER_DEATH_SLOT = 0;
 
     private static final Identifier AUTO_MODE_OFF =
             texture("config/auto_mode_off");
@@ -104,6 +118,8 @@ public final class UpgradeConfigPanel {
             GuiGraphicsExtractor graphics,
             Slot slot,
             ItemStack upgradeStack,
+            ItemStack backpackStack,
+            HolderLookup.Provider registries,
             int panelX,
             int panelY,
             int mouseX,
@@ -124,6 +140,28 @@ public final class UpgradeConfigPanel {
 
             drawRecallRunePanel(
                     graphics,
+                    panelX,
+                    panelY,
+                    mouseX,
+                    mouseY
+            );
+
+            return;
+        }
+
+        if (upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+            BackpackGuiRenderer.drawConfigPanel(
+                    graphics,
+                    panelX,
+                    panelY,
+                    CARTOGRAPHER_PANEL_W,
+                    CARTOGRAPHER_PANEL_H
+            );
+
+            drawCartographersCasePanel(
+                    graphics,
+                    backpackStack,
+                    registries,
                     panelX,
                     panelY,
                     mouseX,
@@ -171,6 +209,233 @@ public final class UpgradeConfigPanel {
         }
     }
 
+    private static void drawCartographersCasePanel(
+            GuiGraphicsExtractor graphics,
+            ItemStack backpackStack,
+            HolderLookup.Provider registries,
+            int panelX,
+            int panelY,
+            int mouseX,
+            int mouseY
+    ) {
+        int activeSlot = backpackStack.isEmpty()
+                ? CartographersCaseHelper.DEATH_SIGNAL_SLOT
+                : CartographersCaseData.getActiveSlot(backpackStack);
+
+        for (int i = 0; i < 9; i++) {
+            int slotX = cartographerCellX(panelX, i);
+            int slotY = cartographerCellY(panelY, i);
+
+            BackpackGuiRenderer.drawSingleSlotFrame(
+                    graphics,
+                    slotX,
+                    slotY
+            );
+
+            if (i == activeSlot) {
+                drawActiveCartographerCell(graphics, slotX, slotY);
+            }
+
+            if (i == CARTOGRAPHER_DEATH_SLOT) {
+                drawDeathSignalIcon(graphics, slotX, slotY);
+                continue;
+            }
+
+            boolean hasCompass = false;
+
+            if (!backpackStack.isEmpty() && registries != null) {
+                ItemStack compass = CartographersCaseData.getCompass(
+                        backpackStack,
+                        CartographersCaseHelper.toCompassInventoryIndex(i),
+                        registries
+                );
+
+                hasCompass = !compass.isEmpty();
+            }
+
+            if (hasCompass) {
+                drawFilledCompassMarker(graphics, slotX, slotY, i);
+            } else {
+                drawEmptyCompassMarker(graphics, slotX, slotY, i);
+            }
+        }
+
+        drawCartographersCaseTooltip(
+                graphics,
+                backpackStack,
+                registries,
+                panelX,
+                panelY,
+                mouseX,
+                mouseY
+        );
+    }
+
+    private static void drawActiveCartographerCell(
+            GuiGraphicsExtractor graphics,
+            int x,
+            int y
+    ) {
+        graphics.fill(x + 1, y + 1, x + 17, y + 2, 0xFFFFD75A);
+        graphics.fill(x + 1, y + 16, x + 17, y + 17, 0xFFFFD75A);
+        graphics.fill(x + 1, y + 1, x + 2, y + 17, 0xFFFFD75A);
+        graphics.fill(x + 16, y + 1, x + 17, y + 17, 0xFFFFD75A);
+    }
+
+    private static void drawFilledCompassMarker(
+            GuiGraphicsExtractor graphics,
+            int x,
+            int y,
+            int number
+    ) {
+        graphics.fill(x + 5, y + 5, x + 13, y + 13, 0xFFB88C4A);
+        graphics.fill(x + 7, y + 3, x + 11, y + 15, 0xFFE6E6E6);
+        graphics.fill(x + 3, y + 7, x + 15, y + 11, 0xFFE6E6E6);
+        graphics.text(
+                net.minecraft.client.Minecraft.getInstance().font,
+                String.valueOf(number),
+                x + 7,
+                y + 5,
+                0xFF202020,
+                true
+        );
+    }
+
+    private static void drawEmptyCompassMarker(
+            GuiGraphicsExtractor graphics,
+            int x,
+            int y,
+            int number
+    ) {
+        graphics.text(
+                net.minecraft.client.Minecraft.getInstance().font,
+                String.valueOf(number),
+                x + 7,
+                y + 5,
+                0xFF777777,
+                true
+        );
+    }
+
+    private static void drawDeathSignalIcon(
+            GuiGraphicsExtractor graphics,
+            int x,
+            int y
+    ) {
+        int dark = 0xFF101010;
+        int light = 0xFFE6E6E6;
+        int mid = 0xFF9A9A9A;
+
+        // tiny skull-ish marker
+        graphics.fill(x + 6, y + 4, x + 12, y + 5, light);
+        graphics.fill(x + 5, y + 5, x + 13, y + 10, light);
+        graphics.fill(x + 6, y + 10, x + 12, y + 13, mid);
+
+        graphics.fill(x + 7, y + 7, x + 8, y + 8, dark);
+        graphics.fill(x + 10, y + 7, x + 11, y + 8, dark);
+        graphics.fill(x + 8, y + 10, x + 10, y + 11, dark);
+
+        graphics.fill(x + 7, y + 13, x + 8, y + 15, light);
+        graphics.fill(x + 10, y + 13, x + 11, y + 15, light);
+    }
+
+    private static void drawSmallSlotNumber(
+            GuiGraphicsExtractor graphics,
+            int x,
+            int y,
+            int number
+    ) {
+        graphics.text(
+                net.minecraft.client.Minecraft.getInstance().font,
+                String.valueOf(number),
+                x + 7,
+                y + 5,
+                0xFFE6E6E6,
+                true
+        );
+    }
+
+    private static int cartographerCellX(int panelX, int index) {
+        int col = index % 3;
+        return panelX + CARTOGRAPHER_GRID_X + col * CARTOGRAPHER_SLOT_SIZE;
+    }
+
+    private static int cartographerCellY(int panelY, int index) {
+        int row = index / 3;
+        return panelY + CARTOGRAPHER_GRID_Y + row * CARTOGRAPHER_SLOT_SIZE;
+    }
+
+    private static void drawCartographersCaseTooltip(
+            GuiGraphicsExtractor graphics,
+            ItemStack backpackStack,
+            HolderLookup.Provider registries,
+            int panelX,
+            int panelY,
+            int mouseX,
+            int mouseY
+    ) {
+        for (int i = 0; i < 9; i++) {
+            int slotX = cartographerCellX(panelX, i);
+            int slotY = cartographerCellY(panelY, i);
+
+            if (!isInside(
+                    mouseX,
+                    mouseY,
+                    slotX,
+                    slotY,
+                    CARTOGRAPHER_SLOT_SIZE,
+                    CARTOGRAPHER_SLOT_SIZE
+            )) {
+                continue;
+            }
+
+            if (i == CARTOGRAPHER_DEATH_SLOT) {
+                boolean hasDeath = !backpackStack.isEmpty()
+                        && CartographersCaseData.getDeathTarget(backpackStack).isPresent();
+
+                graphics.setTooltipForNextFrame(
+                        Component.literal(hasDeath
+                                ? "Death Signal: click to track your last death."
+                                : "Death Signal: no death recorded yet."),
+                        mouseX,
+                        mouseY
+                );
+                return;
+            }
+
+            if (backpackStack.isEmpty() || registries == null) {
+                graphics.setTooltipForNextFrame(
+                        Component.literal("Lodestone Compass Slot " + i),
+                        mouseX,
+                        mouseY
+                );
+                return;
+            }
+
+            ItemStack compass = CartographersCaseData.getCompass(
+                    backpackStack,
+                    CartographersCaseHelper.toCompassInventoryIndex(i),
+                    registries
+            );
+
+            if (compass.isEmpty()) {
+                graphics.setTooltipForNextFrame(
+                        Component.literal("Empty lodestone compass slot " + i),
+                        mouseX,
+                        mouseY
+                );
+                return;
+            }
+
+            graphics.setTooltipForNextFrame(
+                    Component.literal("Tracking: " + compass.getHoverName().getString()),
+                    mouseX,
+                    mouseY
+            );
+            return;
+        }
+    }
+
     public static boolean mouseClicked(
             ItemStack upgradeStack,
             int upgradeSlotIndex,
@@ -193,6 +458,17 @@ public final class UpgradeConfigPanel {
                     mouseX,
                     mouseY,
                     shiftDown,
+                    sender
+            );
+        }
+
+        if (upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+            return mouseClickedCartographersCase(
+                    upgradeSlotIndex,
+                    panelX,
+                    panelY,
+                    mouseX,
+                    mouseY,
                     sender
             );
         }
@@ -253,6 +529,42 @@ public final class UpgradeConfigPanel {
                 );
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private static boolean mouseClickedCartographersCase(
+            int upgradeSlotIndex,
+            int panelX,
+            int panelY,
+            int mouseX,
+            int mouseY,
+            ActionSender sender
+    ) {
+        for (int i = 0; i < 9; i++) {
+            int slotX = cartographerCellX(panelX, i);
+            int slotY = cartographerCellY(panelY, i);
+
+            if (!isInside(
+                    mouseX,
+                    mouseY,
+                    slotX,
+                    slotY,
+                    CARTOGRAPHER_SLOT_SIZE,
+                    CARTOGRAPHER_SLOT_SIZE
+            )) {
+                continue;
+            }
+
+            ClientPlayNetworking.send(
+                    new CartographersCasePayload(
+                            upgradeSlotIndex,
+                            i
+                    )
+            );
+
+            return true;
         }
 
         return false;

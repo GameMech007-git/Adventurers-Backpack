@@ -3,6 +3,7 @@ package com.anantaya.adventurersbackpack.client;
 import com.anantaya.adventurersbackpack.client.screen.panel.UpgradeConfigPanel;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -36,10 +37,16 @@ public final class BackpackScreenUpgradePanel {
             return;
         }
 
+        HolderLookup.Provider registries = screen.minecraftClient().level != null
+                ? screen.minecraftClient().level.registryAccess()
+                : null;
+
         UpgradeConfigPanel.draw(
                 graphics,
                 slot,
                 stack,
+                screen.handler().getBackpackStackForClient(),
+                registries,
                 getConfigPanelX(screen),
                 getConfigPanelY(screen, slot),
                 mouseX,
@@ -118,6 +125,7 @@ public final class BackpackScreenUpgradePanel {
         return upgradeItem.getType() == BackpackUpgradeItem.Type.AUTO_PICKUP
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.FOOD_POUCH
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.RESTOCK
-                || upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE;
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE;
     }
 }

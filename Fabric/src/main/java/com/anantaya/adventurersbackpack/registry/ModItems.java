@@ -83,6 +83,12 @@ public final class ModItems {
             new Item.Properties()
     );
 
+    public static final Item CARTOGRAPHERS_CASE =
+            registerUpgradeItem(
+                    "cartographers_case",
+                    BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+            );
+
     private ModItems() {
     }
 

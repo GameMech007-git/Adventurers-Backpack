@@ -5,6 +5,7 @@ import com.anantaya.adventurersbackpack.backpack.BackpackScreenHandler;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiButton;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiRenderer;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigAction;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -252,6 +253,10 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
 
     public BackpackScreenHandler handler() {
         return this.menu;
+    }
+
+    public Minecraft minecraftClient() {
+        return this.minecraft;
     }
 
     public int screenLeft() {

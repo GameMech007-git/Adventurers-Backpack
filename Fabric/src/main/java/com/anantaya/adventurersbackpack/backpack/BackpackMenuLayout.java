@@ -181,6 +181,8 @@ public final class BackpackMenuLayout {
         return extraStoragePanelY() + 4 + row * SLOT_SIZE;
     }
 
+    // ===== Cartographer's Case panel =====
+
     public int craftingPanelX() {
         return upgradeSlotX() - 3;
     }
