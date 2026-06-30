@@ -82,6 +82,12 @@ public final class BackpackScreenPanels {
             int y
     ) {
         for (int i = 0; i < screen.handler().slots.size(); i++) {
+            Slot slot = screen.handler().slots.get(i);
+
+            if (!slot.isActive()) {
+                continue;
+            }
+
             if (screen.handler().isExtraStorageMenuSlot(i)
                     && !hasExtraStoragePanel(screen)) {
                 continue;
@@ -91,8 +97,6 @@ public final class BackpackScreenPanels {
                     && screen.handler().hasCraftingUpgradeSynced()) {
                 continue;
             }
-
-            Slot slot = screen.handler().slots.get(i);
 
             BackpackGuiRenderer.drawSingleSlotFrame(
                     graphics,

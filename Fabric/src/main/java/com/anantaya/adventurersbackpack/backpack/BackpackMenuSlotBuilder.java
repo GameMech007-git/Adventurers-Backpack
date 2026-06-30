@@ -3,6 +3,7 @@ package com.anantaya.adventurersbackpack.backpack;
 import com.anantaya.adventurersbackpack.menu.BackpackSlotRules;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import com.anantaya.adventurersbackpack.upgrade.crafting.BackpackCraftingResultSlot;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,8 +25,10 @@ public final class BackpackMenuSlotBuilder {
             BackpackMenuLayout layout,
             Container backpackInventory,
             Container extraStorageInventory,
+            Container cartographersCaseInventory,
             Inventory playerInventory,
             ExtraStorageAccess extraStorageAccess,
+
             CraftingAccess craftingAccess
     ) {
         addMagicSlots(menu, tier, layout, backpackInventory);
@@ -53,6 +56,12 @@ public final class BackpackMenuSlotBuilder {
                 layout,
                 playerInventory,
                 craftingAccess
+        );
+
+        addCartographersCaseSlots(
+                menu,
+                layout,
+                cartographersCaseInventory
         );
 
         addPlayerInventorySlots(menu, layout, playerInventory);
@@ -254,6 +263,64 @@ public final class BackpackMenuSlotBuilder {
                     }
                 }
         ));
+    }
+
+    private static void addCartographersCaseSlots(
+            BackpackScreenHandler menu,
+            BackpackMenuLayout layout,
+            Container cartographersCaseInventory
+    ) {
+        int panelX = layout.upgradeSlotX() + 31;
+        int panelY = layout.upgradeSlotY(0);
+
+        int gridX = 5;
+        int gridY = 15;
+        int slotSize = 18;
+
+        for (int navigationSlot = 1; navigationSlot <= 8; navigationSlot++) {
+            final int compassInventoryIndex =
+                    CartographersCaseHelper.toCompassInventoryIndex(navigationSlot);
+
+            int col = navigationSlot % 3;
+            int row = navigationSlot / 3;
+
+            int x = panelX + gridX + col * slotSize;
+            int y = panelY + gridY + row * slotSize;
+
+            menu.addMenuSlot(new Slot(
+                    cartographersCaseInventory,
+                    compassInventoryIndex,
+                    x,
+                    y
+            ) {
+                @Override
+                public boolean mayPlace(@NonNull ItemStack stack) {
+                    return menu.hasCartographersCaseUpgrade()
+                            && CartographersCaseHelper.isValidLodestoneCompass(stack);
+                }
+
+                @Override
+                public boolean mayPickup(@NonNull Player player) {
+                    return menu.hasCartographersCaseUpgrade();
+                }
+
+                @Override
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                @Override
+                public int getMaxStackSize(@NonNull ItemStack stack) {
+                    return 1;
+                }
+
+                @Override
+                public boolean isActive() {
+                    return menu.isUpgradePanelOpen(BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE)
+                            && menu.hasCartographersCaseUpgrade();
+                }
+            });
+        }
     }
 
     private static void addPlayerInventorySlots(

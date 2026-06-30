@@ -49,11 +49,11 @@ public final class UpgradeConfigPanel {
     private static final int RECALL_BUTTON_H = 10;
 
     private static final int CARTOGRAPHER_PANEL_W = 64;
-    private static final int CARTOGRAPHER_PANEL_H = 64;
+    private static final int CARTOGRAPHER_PANEL_H = 74;
 
     private static final int CARTOGRAPHER_SLOT_SIZE = 18;
     private static final int CARTOGRAPHER_GRID_X = 5;
-    private static final int CARTOGRAPHER_GRID_Y = 5;
+    private static final int CARTOGRAPHER_GRID_Y = 15;
 
     private static final int CARTOGRAPHER_DEATH_SLOT = 0;
 
@@ -219,8 +219,15 @@ public final class UpgradeConfigPanel {
             int mouseY
     ) {
         int activeSlot = backpackStack.isEmpty()
-                ? CartographersCaseHelper.DEATH_SIGNAL_SLOT
+                ? CartographersCaseHelper.NO_ACTIVE_SLOT
                 : CartographersCaseData.getActiveSlot(backpackStack);
+
+        drawCartographerStatusText(
+                graphics,
+                panelX,
+                panelY,
+                activeSlot
+        );
 
         for (int i = 0; i < 9; i++) {
             int slotX = cartographerCellX(panelX, i);
@@ -241,23 +248,7 @@ public final class UpgradeConfigPanel {
                 continue;
             }
 
-            boolean hasCompass = false;
-
-            if (!backpackStack.isEmpty() && registries != null) {
-                ItemStack compass = CartographersCaseData.getCompass(
-                        backpackStack,
-                        CartographersCaseHelper.toCompassInventoryIndex(i),
-                        registries
-                );
-
-                hasCompass = !compass.isEmpty();
-            }
-
-            if (hasCompass) {
-                drawFilledCompassMarker(graphics, slotX, slotY, i);
-            } else {
-                drawEmptyCompassMarker(graphics, slotX, slotY, i);
-            }
+            drawEmptyCompassMarker(graphics, slotX, slotY, i);
         }
 
         drawCartographersCaseTooltip(
@@ -268,6 +259,30 @@ public final class UpgradeConfigPanel {
                 panelY,
                 mouseX,
                 mouseY
+        );
+    }
+
+    private static void drawCartographerStatusText(
+            GuiGraphicsExtractor graphics,
+            int panelX,
+            int panelY,
+            int activeSlot
+    ) {
+        String text = activeSlot == CartographersCaseHelper.NO_ACTIVE_SLOT
+                ? "OFF"
+                : "TRACK " + activeSlot;
+
+        int color = activeSlot == CartographersCaseHelper.NO_ACTIVE_SLOT
+                ? 0xFFAA5555
+                : 0xFFFFD75A;
+
+        graphics.text(
+                net.minecraft.client.Minecraft.getInstance().font,
+                text,
+                panelX + 6,
+                panelY + 4,
+                color,
+                true
         );
     }
 
@@ -374,66 +389,30 @@ public final class UpgradeConfigPanel {
             int mouseX,
             int mouseY
     ) {
-        for (int i = 0; i < 9; i++) {
-            int slotX = cartographerCellX(panelX, i);
-            int slotY = cartographerCellY(panelY, i);
+        int slotX = cartographerCellX(panelX, CARTOGRAPHER_DEATH_SLOT);
+        int slotY = cartographerCellY(panelY, CARTOGRAPHER_DEATH_SLOT);
 
-            if (!isInside(
-                    mouseX,
-                    mouseY,
-                    slotX,
-                    slotY,
-                    CARTOGRAPHER_SLOT_SIZE,
-                    CARTOGRAPHER_SLOT_SIZE
-            )) {
-                continue;
-            }
-
-            if (i == CARTOGRAPHER_DEATH_SLOT) {
-                boolean hasDeath = !backpackStack.isEmpty()
-                        && CartographersCaseData.getDeathTarget(backpackStack).isPresent();
-
-                graphics.setTooltipForNextFrame(
-                        Component.literal(hasDeath
-                                ? "Death Signal: click to track your last death."
-                                : "Death Signal: no death recorded yet."),
-                        mouseX,
-                        mouseY
-                );
-                return;
-            }
-
-            if (backpackStack.isEmpty() || registries == null) {
-                graphics.setTooltipForNextFrame(
-                        Component.literal("Lodestone Compass Slot " + i),
-                        mouseX,
-                        mouseY
-                );
-                return;
-            }
-
-            ItemStack compass = CartographersCaseData.getCompass(
-                    backpackStack,
-                    CartographersCaseHelper.toCompassInventoryIndex(i),
-                    registries
-            );
-
-            if (compass.isEmpty()) {
-                graphics.setTooltipForNextFrame(
-                        Component.literal("Empty lodestone compass slot " + i),
-                        mouseX,
-                        mouseY
-                );
-                return;
-            }
-
-            graphics.setTooltipForNextFrame(
-                    Component.literal("Tracking: " + compass.getHoverName().getString()),
-                    mouseX,
-                    mouseY
-            );
+        if (!isInside(
+                mouseX,
+                mouseY,
+                slotX,
+                slotY,
+                CARTOGRAPHER_SLOT_SIZE,
+                CARTOGRAPHER_SLOT_SIZE
+        )) {
             return;
         }
+
+        boolean hasDeath = !backpackStack.isEmpty()
+                && CartographersCaseData.getDeathTarget(backpackStack).isPresent();
+
+        graphics.setTooltipForNextFrame(
+                Component.literal(hasDeath
+                        ? "Death Signal: click to track your last death."
+                        : "Death Signal: no death recorded yet."),
+                mouseX,
+                mouseY
+        );
     }
 
     public static boolean mouseClicked(
@@ -469,6 +448,7 @@ public final class UpgradeConfigPanel {
                     panelY,
                     mouseX,
                     mouseY,
+                    shiftDown,
                     sender
             );
         }
@@ -540,6 +520,7 @@ public final class UpgradeConfigPanel {
             int panelY,
             int mouseX,
             int mouseY,
+            boolean shiftDown,
             ActionSender sender
     ) {
         for (int i = 0; i < 9; i++) {
@@ -555,6 +536,21 @@ public final class UpgradeConfigPanel {
                     CARTOGRAPHER_SLOT_SIZE
             )) {
                 continue;
+            }
+
+            if (i == CARTOGRAPHER_DEATH_SLOT) {
+                ClientPlayNetworking.send(
+                        new CartographersCasePayload(
+                                upgradeSlotIndex,
+                                i
+                        )
+                );
+
+                return true;
+            }
+
+            if (!shiftDown) {
+                return false;
             }
 
             ClientPlayNetworking.send(

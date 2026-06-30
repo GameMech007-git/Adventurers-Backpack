@@ -59,6 +59,12 @@ public final class CartographersCaseServerTickHelper {
             }
 
             if (horizontalDistance(player, target) <= REACHED_DISTANCE) {
+                int activeSlot = CartographersCaseData.getActiveSlot(stack);
+
+                if (activeSlot == CartographersCaseHelper.DEATH_SIGNAL_SLOT) {
+                    CartographersCaseData.clearDeathTarget(stack);
+                }
+
                 CartographersCaseData.setActiveSlot(
                         stack,
                         CartographersCaseHelper.NO_ACTIVE_SLOT

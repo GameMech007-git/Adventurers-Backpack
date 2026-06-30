@@ -5,6 +5,7 @@ import com.anantaya.adventurersbackpack.client.gui.BackpackGuiButton;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiButtonType;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiIcons;
 import com.anantaya.adventurersbackpack.network.BackpackSortPayload;
+import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
@@ -42,8 +43,29 @@ public final class BackpackScreenButtonController {
             case MOVE_TO_BACKPACK ->
                     BackpackScreenTransferActions.movePlayerInventoryToBackpack(screen);
 
-            case UPGRADE_CONFIG ->
-                    screen.upgradePanel().toggleSelectedUpgradeSlot(button.data);
+            case UPGRADE_CONFIG -> {
+                boolean wasSamePanel =
+                        screen.upgradePanel().isSelectedUpgradeSlot(button.data);
+
+                screen.upgradePanel().toggleSelectedUpgradeSlot(button.data);
+
+                if (wasSamePanel) {
+                    screen.handler().closeUpgradePanel();
+                    return;
+                }
+
+                Slot slot = screen.handler().slots.get(button.data);
+
+                if (slot.hasItem()
+                        && slot.getItem().getItem() instanceof BackpackUpgradeItem upgradeItem) {
+                    screen.handler().setOpenUpgradePanel(
+                            upgradeItem.getType(),
+                            button.data
+                    );
+                } else {
+                    screen.handler().closeUpgradePanel();
+                }
+            }
         }
     }
 

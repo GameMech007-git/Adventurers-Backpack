@@ -10,6 +10,7 @@ import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseData;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseInventory;
 import com.anantaya.adventurersbackpack.upgrade.crafting.BackpackCraftingMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.BlockBackpackContainer;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.BlockExtraStorageContainer;
@@ -33,6 +34,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     final BackpackBlockEntity blockEntity;
     final BackpackMenuLayout layout;
     final Container extraStorageInventory;
+    final Container cartographersCaseInventory;
     final int extraStorageSlots;
     final int sourceSlot;
 
@@ -47,6 +49,8 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     private int syncedFluidAmount = 0;
     private int syncedExtraStorageActive = 0;
     private int syncedCraftingActive = 0;
+    private BackpackUpgradeItem.Type openUpgradePanelType = null;
+    private int openUpgradePanelSlotIndex = -1;
 
     public BackpackScreenHandler(
             int syncId,
@@ -78,6 +82,11 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 registryAccess
         );
 
+        this.cartographersCaseInventory = new CartographersCaseInventory(
+                stack,
+                registryAccess
+        );
+
         this.transferHelper = new BackpackMenuTransferHelper(
                 this,
                 tier,
@@ -103,12 +112,21 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 layout,
                 inventory,
                 extraStorageInventory,
+                cartographersCaseInventory,
                 playerInventory,
                 this::canUseExtraStorageSlots,
                 new BackpackMenuSlotBuilder.CraftingAccess() {
                     @Override
                     public boolean hasCraftingUpgrade() {
                         return BackpackScreenHandler.this.hasCraftingUpgrade();
+                    }
+
+                    public boolean hasCartographersCaseUpgrade() {
+                        return BackpackUpgradeHelper.hasUpgrade(
+                                inventory,
+                                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE,
+                                tier
+                        );
                     }
 
                     @Override
@@ -138,6 +156,56 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         addCraftingDataSlots();
     }
 
+    public boolean isUpgradePanelOpen(BackpackUpgradeItem.Type type) {
+        if (openUpgradePanelType != type) {
+            return false;
+        }
+
+        if (openUpgradePanelSlotIndex < 0
+                || openUpgradePanelSlotIndex >= this.slots.size()) {
+            closeUpgradePanel();
+            return false;
+        }
+
+        Slot slot = this.slots.get(openUpgradePanelSlotIndex);
+
+        if (!slot.hasItem()) {
+            closeUpgradePanel();
+            return false;
+        }
+
+        ItemStack stack = slot.getItem();
+
+        if (!(stack.getItem() instanceof BackpackUpgradeItem upgradeItem)
+                || upgradeItem.getType() != type) {
+            closeUpgradePanel();
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean isUpgradePanelOpenForSlot(
+            BackpackUpgradeItem.Type type,
+            int upgradeSlotIndex
+    ) {
+        return isUpgradePanelOpen(type)
+                && openUpgradePanelSlotIndex == upgradeSlotIndex;
+    }
+
+    public void setOpenUpgradePanel(
+            BackpackUpgradeItem.Type type,
+            int upgradeSlotIndex
+    ) {
+        this.openUpgradePanelType = type;
+        this.openUpgradePanelSlotIndex = upgradeSlotIndex;
+    }
+
+    public void closeUpgradePanel() {
+        this.openUpgradePanelType = null;
+        this.openUpgradePanelSlotIndex = -1;
+    }
+
     public boolean isCraftingMenuSlot(int index) {
         return transferHelper.isCraftingSlot(index);
     }
@@ -151,6 +219,14 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         return BackpackUpgradeHelper.hasUpgrade(
                 inventory,
                 BackpackUpgradeItem.Type.CRAFTING,
+                tier
+        );
+    }
+
+    public boolean hasCartographersCaseUpgrade() {
+        return BackpackUpgradeHelper.hasUpgrade(
+                inventory,
+                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE,
                 tier
         );
     }
@@ -180,6 +256,9 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
 
         this.extraStorageSlots = BackpackMenuLayout.extraStorageSlotsForTier(this.tier);
         this.extraStorageInventory = createBlockExtraStorageContainer(blockEntity);
+        this.cartographersCaseInventory = new SimpleContainer(
+                CartographersCaseHelper.LODESTONE_COMPASS_SLOT_COUNT
+        );
 
         this.transferHelper = new BackpackMenuTransferHelper(
                 this,
@@ -206,6 +285,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 layout,
                 inventory,
                 extraStorageInventory,
+                cartographersCaseInventory,
                 playerInventory,
                 this::canUseExtraStorageSlots,
                 new BackpackMenuSlotBuilder.CraftingAccess() {
@@ -583,88 +663,23 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         int compassInventoryIndex =
                 CartographersCaseHelper.toCompassInventoryIndex(navigationSlot);
 
-        ItemStack carried = this.getCarried();
-        ItemStack stored = CartographersCaseData.getCompass(
-                backpackStack,
-                compassInventoryIndex,
-                player.level().registryAccess()
-        );
+        ItemStack compass = cartographersCaseInventory.getItem(compassInventoryIndex);
 
-        if (carried.isEmpty()) {
-            if (stored.isEmpty()) {
-                int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
-
-                CartographersCaseData.setActiveSlot(
-                        backpackStack,
-                        activeSlot == navigationSlot
-                                ? CartographersCaseHelper.NO_ACTIVE_SLOT
-                                : navigationSlot
-                );
-
-                this.broadcastChanges();
-                return;
-            }
-
-            this.setCarried(stored.copy());
-
-            CartographersCaseData.setCompass(
-                    backpackStack,
-                    compassInventoryIndex,
-                    ItemStack.EMPTY,
-                    player.level().registryAccess()
-            );
-
-            CartographersCaseData.setActiveSlot(
-                    backpackStack,
-                    navigationSlot
-            );
-
-            this.broadcastChanges();
+        if (compass.isEmpty()) {
             return;
         }
 
-        if (!CartographersCaseHelper.isValidLodestoneCompass(carried)) {
+        if (!CartographersCaseHelper.isValidLodestoneCompass(compass)) {
             return;
         }
 
-        ItemStack toStore = carried.copy();
-        toStore.setCount(1);
-
-        if (stored.isEmpty()) {
-            CartographersCaseData.setCompass(
-                    backpackStack,
-                    compassInventoryIndex,
-                    toStore,
-                    player.level().registryAccess()
-            );
-
-            carried.shrink(1);
-
-            if (carried.isEmpty()) {
-                this.setCarried(ItemStack.EMPTY);
-            }
-
-            CartographersCaseData.setActiveSlot(
-                    backpackStack,
-                    navigationSlot
-            );
-
-            this.broadcastChanges();
-            return;
-        }
-
-        CartographersCaseData.setCompass(
-                backpackStack,
-                compassInventoryIndex,
-                toStore,
-                player.level().registryAccess()
-        );
-
-        this.setCarried(stored.copy());
+        int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
 
         CartographersCaseData.setActiveSlot(
                 backpackStack,
-                navigationSlot
+                activeSlot == navigationSlot
+                        ? CartographersCaseHelper.NO_ACTIVE_SLOT
+                        : navigationSlot
         );
 
         this.broadcastChanges();
@@ -686,6 +701,10 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
 
         if (inventory instanceof BackpackInventory backpackInventory) {
             backpackInventory.saveToData();
+
+            if (cartographersCaseInventory instanceof CartographersCaseInventory cartographersCase) {
+                cartographersCase.saveToBackpack();
+            }
 
             if (extraStorageInventory != null) {
                 extraStorageInventory.setChanged();

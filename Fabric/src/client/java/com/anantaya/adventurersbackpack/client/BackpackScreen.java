@@ -89,19 +89,16 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
         BackpackScreenPanels.drawVisibleSlotFrames(this, graphics, x, y);
         BackpackGuiRenderer.drawLockedUpgradeSlots(graphics, layout, x, y);
 
-
-
-
-        super.extractContents(graphics, mouseX, mouseY, delta);
-
-        BackpackScreenButtonController.rebuildButtons(this, buttons);
-
         upgradePanel.draw(
                 this,
                 graphics,
                 mouseX,
                 mouseY
         );
+
+        super.extractContents(graphics, mouseX, mouseY, delta);
+
+        BackpackScreenButtonController.rebuildButtons(this, buttons);
 
         BackpackGuiRenderer.drawButtons(
                 graphics,
@@ -196,6 +193,10 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
 
         if (BackpackScreenPanels.shouldShowTrashSlot()
                 && BackpackScreenPanels.isInsideTrashSlot(this, mouseX, mouseY)) {
+            return false;
+        }
+
+        if (upgradePanel.isInsideSelectedPanel(this, mouseX, mouseY)) {
             return false;
         }
 

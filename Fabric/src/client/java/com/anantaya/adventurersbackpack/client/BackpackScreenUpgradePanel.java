@@ -54,6 +54,10 @@ public final class BackpackScreenUpgradePanel {
         );
     }
 
+    public boolean isSelectedUpgradeSlot(int slotIndex) {
+        return selectedUpgradeSlot == slotIndex;
+    }
+
     public boolean mouseClicked(
             BackpackScreen screen,
             int mouseX,
@@ -108,7 +112,61 @@ public final class BackpackScreenUpgradePanel {
             BackpackScreen screen,
             Slot slot
     ) {
+        ItemStack stack = slot.getItem();
+
+        if (stack.getItem() instanceof BackpackUpgradeItem upgradeItem
+                && upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+            return screen.screenTop() + screen.layout().upgradeSlotY(0);
+        }
+
         return screen.screenTop() + slot.y;
+    }
+
+    public boolean isCartographersCasePanelOpen(BackpackScreen screen) {
+        Slot slot = getSelectedUpgradeSlot(screen);
+
+        if (slot == null || !slot.hasItem()) {
+            return false;
+        }
+
+        ItemStack stack = slot.getItem();
+
+        return stack.getItem() instanceof BackpackUpgradeItem upgradeItem
+                && upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE;
+    }
+
+    public boolean isInsideSelectedPanel(
+            BackpackScreen screen,
+            double mouseX,
+            double mouseY
+    ) {
+        Slot slot = getSelectedUpgradeSlot(screen);
+
+        if (slot == null || !slot.hasItem()) {
+            return false;
+        }
+
+        ItemStack stack = slot.getItem();
+
+        int panelW = 32;
+        int panelH = 18;
+
+        if (stack.getItem() instanceof BackpackUpgradeItem upgradeItem) {
+            if (upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE) {
+                panelW = 44;
+            } else if (upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+                panelW = 64;
+                panelH = 74;
+            }
+        }
+
+        int panelX = getConfigPanelX(screen);
+        int panelY = getConfigPanelY(screen, slot);
+
+        return mouseX >= panelX
+                && mouseX < panelX + panelW
+                && mouseY >= panelY
+                && mouseY < panelY + panelH;
     }
 
     public static boolean isConfigurableUpgradeSlot(Slot slot) {
@@ -128,4 +186,6 @@ public final class BackpackScreenUpgradePanel {
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE;
     }
+
+
 }
