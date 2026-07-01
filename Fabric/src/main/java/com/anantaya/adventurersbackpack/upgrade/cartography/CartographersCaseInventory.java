@@ -67,5 +67,28 @@ public final class CartographersCaseInventory extends SimpleContainer {
                     registries
             );
         }
+
+        clearActiveSlotIfCompassWasRemoved();
+    }
+
+    private void clearActiveSlotIfCompassWasRemoved() {
+        int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
+
+        if (!CartographersCaseHelper.isCompassSlotIndex(activeSlot)) {
+            return;
+        }
+
+        int compassInventoryIndex =
+                CartographersCaseHelper.toCompassInventoryIndex(activeSlot);
+
+        ItemStack activeCompass = getItem(compassInventoryIndex);
+
+        if (activeCompass.isEmpty()
+                || !CartographersCaseHelper.isValidLodestoneCompass(activeCompass)) {
+            CartographersCaseData.setActiveSlot(
+                    backpackStack,
+                    CartographersCaseHelper.NO_ACTIVE_SLOT
+            );
+        }
     }
 }

@@ -139,6 +139,13 @@ public final class BackpackScreenPanels {
                 mouseX,
                 mouseY
         );
+
+        drawBlockedCartographersCaseUpgradeTooltip(
+                screen,
+                graphics,
+                mouseX,
+                mouseY
+        );
     }
 
     public static boolean handleFluidStorageFakeSlotClick(
@@ -363,6 +370,60 @@ public final class BackpackScreenPanels {
                 mouseX,
                 mouseY
         );
+    }
+
+    private static void drawBlockedCartographersCaseUpgradeTooltip(
+            BackpackScreen screen,
+            GuiGraphicsExtractor graphics,
+            int mouseX,
+            int mouseY
+    ) {
+        if (!screen.handler().hasAnyCartographersCaseItem()) {
+            return;
+        }
+
+        int start = screen.handler().tier.upgradeStart();
+        int end = screen.handler().tier.totalSlots;
+
+        for (int i = start; i < end && i < screen.handler().slots.size(); i++) {
+            Slot slot = screen.handler().slots.get(i);
+
+            int slotX = screen.screenLeft() + slot.x;
+            int slotY = screen.screenTop() + slot.y;
+
+            boolean hovering =
+                    mouseX >= slotX
+                            && mouseX < slotX + 18
+                            && mouseY >= slotY
+                            && mouseY < slotY + 18;
+
+            if (!hovering) {
+                continue;
+            }
+
+            ItemStack stack = slot.getItem();
+
+            if (!(stack.getItem() instanceof BackpackUpgradeItem upgradeItem)) {
+                continue;
+            }
+
+            if (upgradeItem.getType() != BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+                continue;
+            }
+
+            screen.showTooltip(
+                    graphics,
+                    List.of(
+                            Component.literal("Cartographer's Case Upgrade"),
+                            Component.literal("Compass slots must be empty!")
+                                    .withStyle(ChatFormatting.RED)
+                    ),
+                    mouseX,
+                    mouseY
+            );
+
+            return;
+        }
     }
 
     private static int getTrashX(BackpackScreen screen) {

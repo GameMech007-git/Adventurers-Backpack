@@ -43,7 +43,6 @@ public final class BackpackScreenUpgradePanel {
 
         UpgradeConfigPanel.draw(
                 graphics,
-                slot,
                 stack,
                 screen.handler().getBackpackStackForClient(),
                 registries,

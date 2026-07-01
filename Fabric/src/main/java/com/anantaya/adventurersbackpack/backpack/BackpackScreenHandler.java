@@ -1,22 +1,20 @@
 package com.anantaya.adventurersbackpack.backpack;
 
 import com.anantaya.adventurersbackpack.block.entity.BackpackBlockEntity;
-import com.anantaya.adventurersbackpack.menu.BackpackSortHelper;
 import com.anantaya.adventurersbackpack.menu.BackpackTrashHelper;
 import com.anantaya.adventurersbackpack.registry.ModMenus;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigAction;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigDispatcher;
-import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
-import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseData;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseInventory;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.crafting.BackpackCraftingMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.BlockBackpackContainer;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.BlockExtraStorageContainer;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.ExtraStorageInventory;
+import com.anantaya.adventurersbackpack.upgrade.extrastorage.ExtraStorageMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.fluidstorage.BackpackFluidMenuHandler;
-import com.anantaya.adventurersbackpack.upgrade.fluidstorage.BackpackFluidStorageHelper;
 import com.anantaya.adventurersbackpack.upgrade.fluidstorage.FluidStorageType;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.Container;
@@ -44,13 +42,9 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     private final BackpackFluidMenuHandler fluidMenuHandler;
     private final BackpackCraftingMenuHandler craftingMenuHandler;
     private final Player menuPlayer;
-
-    private int syncedFluidTypeId = FluidStorageType.NONE.networkId();
-    private int syncedFluidAmount = 0;
-    private int syncedExtraStorageActive = 0;
-    private int syncedCraftingActive = 0;
-    private BackpackUpgradeItem.Type openUpgradePanelType = null;
-    private int openUpgradePanelSlotIndex = -1;
+    private final UpgradePanelState upgradePanelState;
+    private final CartographersCaseMenuHandler cartographersCaseMenuHandler;
+    private final ExtraStorageMenuHandler extraStorageMenuHandler;
 
     public BackpackScreenHandler(
             int syncId,
@@ -82,9 +76,26 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 registryAccess
         );
 
+        this.extraStorageMenuHandler = new ExtraStorageMenuHandler(
+                this,
+                inventory,
+                extraStorageInventory,
+                tier
+        );
+
         this.cartographersCaseInventory = new CartographersCaseInventory(
                 stack,
                 registryAccess
+        );
+
+        this.upgradePanelState = new UpgradePanelState();
+
+        this.cartographersCaseMenuHandler = new CartographersCaseMenuHandler(
+                this,
+                inventory,
+                cartographersCaseInventory,
+                backpackStack,
+                tier
         );
 
         this.transferHelper = new BackpackMenuTransferHelper(
@@ -103,107 +114,31 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 tier
         );
 
-        this.craftingMenuHandler = new BackpackCraftingMenuHandler(this);
+        this.craftingMenuHandler = new BackpackCraftingMenuHandler(
+                this,
+                inventory,
+                tier
+        );
         this.menuPlayer = playerInventory.player;
 
-        BackpackMenuSlotBuilder.addSlots(
-                this,
-                tier,
-                layout,
-                inventory,
-                extraStorageInventory,
-                cartographersCaseInventory,
-                playerInventory,
-                this::canUseExtraStorageSlots,
-                new BackpackMenuSlotBuilder.CraftingAccess() {
-                    @Override
-                    public boolean hasCraftingUpgrade() {
-                        return BackpackScreenHandler.this.hasCraftingUpgrade();
-                    }
+        addBackpackSlots(playerInventory);
 
-                    public boolean hasCartographersCaseUpgrade() {
-                        return BackpackUpgradeHelper.hasUpgrade(
-                                inventory,
-                                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE,
-                                tier
-                        );
-                    }
-
-                    @Override
-                    public boolean hasAnyCraftingInputItem() {
-                        return BackpackScreenHandler.this.hasAnyCraftingInputItem();
-                    }
-
-                    @Override
-                    public CraftingContainer craftSlots() {
-                        return BackpackScreenHandler.this.craftingMenuHandler.craftSlots();
-                    }
-
-                    @Override
-                    public ResultContainer resultSlots() {
-                        return BackpackScreenHandler.this.craftingMenuHandler.resultSlots();
-                    }
-
-                    @Override
-                    public void updateCraftingResult(Player player) {
-                        BackpackScreenHandler.this.craftingMenuHandler.updateCraftingResult(player);
-                    }
-                }
-        );
-
-        addFluidDataSlots();
-        addExtraStorageDataSlots();
-        addCraftingDataSlots();
+        addUpgradeDataSlots();
     }
 
     public boolean isUpgradePanelOpen(BackpackUpgradeItem.Type type) {
-        if (openUpgradePanelType != type) {
-            return false;
-        }
-
-        if (openUpgradePanelSlotIndex < 0
-                || openUpgradePanelSlotIndex >= this.slots.size()) {
-            closeUpgradePanel();
-            return false;
-        }
-
-        Slot slot = this.slots.get(openUpgradePanelSlotIndex);
-
-        if (!slot.hasItem()) {
-            closeUpgradePanel();
-            return false;
-        }
-
-        ItemStack stack = slot.getItem();
-
-        if (!(stack.getItem() instanceof BackpackUpgradeItem upgradeItem)
-                || upgradeItem.getType() != type) {
-            closeUpgradePanel();
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean isUpgradePanelOpenForSlot(
-            BackpackUpgradeItem.Type type,
-            int upgradeSlotIndex
-    ) {
-        return isUpgradePanelOpen(type)
-                && openUpgradePanelSlotIndex == upgradeSlotIndex;
+        return upgradePanelState.isOpen(type, this.slots);
     }
 
     public void setOpenUpgradePanel(
             BackpackUpgradeItem.Type type,
             int upgradeSlotIndex
     ) {
-        this.openUpgradePanelType = type;
-        this.openUpgradePanelSlotIndex = upgradeSlotIndex;
+        upgradePanelState.open(type, upgradeSlotIndex);
     }
 
     public void closeUpgradePanel() {
-        this.openUpgradePanelType = null;
-        this.openUpgradePanelSlotIndex = -1;
+        upgradePanelState.close();
     }
 
     public boolean isCraftingMenuSlot(int index) {
@@ -211,34 +146,20 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     }
 
     public boolean hasAnyCraftingInputItem() {
-        return craftingMenuHandler != null
-                && craftingMenuHandler.hasAnyCraftingInputItem();
+        return craftingMenuHandler.hasAnyCraftingInputItem();
     }
 
     public boolean hasCraftingUpgrade() {
-        return BackpackUpgradeHelper.hasUpgrade(
-                inventory,
-                BackpackUpgradeItem.Type.CRAFTING,
-                tier
-        );
+        return craftingMenuHandler.hasUpgrade();
     }
 
-    public boolean hasCartographersCaseUpgrade() {
-        return BackpackUpgradeHelper.hasUpgrade(
-                inventory,
-                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE,
-                tier
-        );
+    public boolean hasCraftingUpgradeSynced() {
+        return craftingMenuHandler.hasUpgradeSynced();
     }
 
     public ItemStack getBackpackStackForClient() {
         return backpackStack;
     }
-
-    public boolean hasCraftingUpgradeSynced() {
-        return syncedCraftingActive != 1;
-    }
-
     public BackpackScreenHandler(
             int syncId,
             Inventory playerInventory,
@@ -256,8 +177,26 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
 
         this.extraStorageSlots = BackpackMenuLayout.extraStorageSlotsForTier(this.tier);
         this.extraStorageInventory = createBlockExtraStorageContainer(blockEntity);
+
+        this.extraStorageMenuHandler = new ExtraStorageMenuHandler(
+                this,
+                inventory,
+                extraStorageInventory,
+                tier
+        );
+
         this.cartographersCaseInventory = new SimpleContainer(
                 CartographersCaseHelper.LODESTONE_COMPASS_SLOT_COUNT
+        );
+
+        this.upgradePanelState = new UpgradePanelState();
+
+        this.cartographersCaseMenuHandler = new CartographersCaseMenuHandler(
+                this,
+                inventory,
+                cartographersCaseInventory,
+                backpackStack,
+                tier
         );
 
         this.transferHelper = new BackpackMenuTransferHelper(
@@ -276,49 +215,16 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 tier
         );
 
-        this.craftingMenuHandler = new BackpackCraftingMenuHandler(this);
+        this.craftingMenuHandler = new BackpackCraftingMenuHandler(
+                this,
+                inventory,
+                tier
+        );
         this.menuPlayer = playerInventory.player;
 
-        BackpackMenuSlotBuilder.addSlots(
-                this,
-                tier,
-                layout,
-                inventory,
-                extraStorageInventory,
-                cartographersCaseInventory,
-                playerInventory,
-                this::canUseExtraStorageSlots,
-                new BackpackMenuSlotBuilder.CraftingAccess() {
-                    @Override
-                    public boolean hasCraftingUpgrade() {
-                        return BackpackScreenHandler.this.hasCraftingUpgrade();
-                    }
+        addBackpackSlots(playerInventory);
 
-                    @Override
-                    public boolean hasAnyCraftingInputItem() {
-                        return BackpackScreenHandler.this.hasAnyCraftingInputItem();
-                    }
-
-                    @Override
-                    public CraftingContainer craftSlots() {
-                        return BackpackScreenHandler.this.craftingMenuHandler.craftSlots();
-                    }
-
-                    @Override
-                    public ResultContainer resultSlots() {
-                        return BackpackScreenHandler.this.craftingMenuHandler.resultSlots();
-                    }
-
-                    @Override
-                    public void updateCraftingResult(Player player) {
-                        BackpackScreenHandler.this.craftingMenuHandler.updateCraftingResult(player);
-                    }
-                }
-        );
-
-        addFluidDataSlots();
-        addExtraStorageDataSlots();
-        addCraftingDataSlots();
+        addUpgradeDataSlots();
     }
 
     public BackpackScreenHandler(
@@ -339,27 +245,19 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     }
 
     public FluidStorageType getSyncedFluidType() {
-        return FluidStorageType.byNetworkId(syncedFluidTypeId);
+        return fluidMenuHandler.getSyncedFluidType();
     }
 
     public int getSyncedFluidAmount() {
-        return syncedFluidAmount;
+        return fluidMenuHandler.getSyncedFluidAmount();
     }
 
     public boolean hasExtraStorageUpgradeSynced() {
-        return syncedExtraStorageActive == 1;
+        return extraStorageMenuHandler.hasUpgradeSynced();
     }
 
     public boolean canUseExtraStorageSlots() {
-        if (BackpackUpgradeHelper.hasUpgrade(
-                inventory,
-                BackpackUpgradeItem.Type.EXTRA_STORAGE,
-                tier
-        )) {
-            return true;
-        }
-
-        return hasExtraStorageUpgradeSynced();
+        return extraStorageMenuHandler.canUseSlots();
     }
 
     public int extraStorageStart() {
@@ -396,88 +294,58 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         );
     }
 
+    private void addUpgradeDataSlots() {
+        fluidMenuHandler.addDataSlots();
+        extraStorageMenuHandler.addDataSlots();
+        craftingMenuHandler.addDataSlots();
+        cartographersCaseMenuHandler.addDataSlots();
+    }
+
     public void addMenuSlot(Slot slot) {
         this.addSlot(slot);
     }
 
-    private void addFluidDataSlots() {
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                if (blockEntity != null) {
-                    return blockEntity.getFluidType().networkId();
-                }
-
-                if (!backpackStack.isEmpty()) {
-                    return BackpackFluidStorageHelper
-                            .getType(backpackStack)
-                            .networkId();
-                }
-
-                return FluidStorageType.NONE.networkId();
-            }
-
-            @Override
-            public void set(int value) {
-                syncedFluidTypeId = value;
-            }
-        });
-
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                if (blockEntity != null) {
-                    return blockEntity.getFluidAmount();
-                }
-
-                if (!backpackStack.isEmpty()) {
-                    return BackpackFluidStorageHelper.getAmount(backpackStack);
-                }
-
-                return 0;
-            }
-
-            @Override
-            public void set(int value) {
-                syncedFluidAmount = value;
-            }
-        });
+    public void addMenuDataSlot(DataSlot dataSlot) {
+        this.addDataSlot(dataSlot);
     }
 
-    private void addExtraStorageDataSlots() {
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return BackpackUpgradeHelper.hasUpgrade(
-                        inventory,
-                        BackpackUpgradeItem.Type.EXTRA_STORAGE,
-                        tier
-                ) ? 1 : 0;
-            }
+    private void addBackpackSlots(Inventory playerInventory) {
+        BackpackMenuSlotBuilder.addSlots(
+                this,
+                tier,
+                layout,
+                inventory,
+                extraStorageInventory,
+                cartographersCaseInventory,
+                playerInventory,
+                this::canUseExtraStorageSlots,
+                new BackpackMenuSlotBuilder.CraftingAccess() {
+                    @Override
+                    public boolean hasCraftingUpgrade() {
+                        return BackpackScreenHandler.this.hasCraftingUpgrade();
+                    }
 
-            @Override
-            public void set(int value) {
-                syncedExtraStorageActive = value;
-            }
-        });
-    }
+                    @Override
+                    public boolean hasAnyCraftingInputItem() {
+                        return BackpackScreenHandler.this.hasAnyCraftingInputItem();
+                    }
 
-    private void addCraftingDataSlots() {
-        this.addDataSlot(new DataSlot() {
-            @Override
-            public int get() {
-                return BackpackUpgradeHelper.hasUpgrade(
-                        inventory,
-                        BackpackUpgradeItem.Type.CRAFTING,
-                        tier
-                ) ? 1 : 0;
-            }
+                    @Override
+                    public CraftingContainer craftSlots() {
+                        return BackpackScreenHandler.this.craftingMenuHandler.craftSlots();
+                    }
 
-            @Override
-            public void set(int value) {
-                syncedCraftingActive = value;
-            }
-        });
+                    @Override
+                    public ResultContainer resultSlots() {
+                        return BackpackScreenHandler.this.craftingMenuHandler.resultSlots();
+                    }
+
+                    @Override
+                    public void updateCraftingResult(Player player) {
+                        BackpackScreenHandler.this.craftingMenuHandler.updateCraftingResult(player);
+                    }
+                }
+        );
     }
 
     public void handleUpgradeConfigAction(
@@ -503,102 +371,29 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     }
 
     public void handleSortNormalStorage(Player player) {
-        if (player == null) {
-            return;
-        }
-
-        boolean changed = BackpackSortHelper.sortAllSections(
+        boolean changed = BackpackMenuSortHandler.sortNormalStorage(
+                player,
                 inventory,
                 tier,
                 extraStorageInventory,
                 canUseExtraStorageSlots(),
-                player.getInventory()
+                extraStorageMenuHandler
         );
 
-        if (!changed) {
-            return;
+        if (changed) {
+            this.broadcastChanges();
         }
-
-        if (inventory instanceof BackpackInventory backpackInventory) {
-            backpackInventory.saveToData();
-        } else {
-            inventory.setChanged();
-        }
-
-        if (extraStorageInventory != null) {
-            extraStorageInventory.setChanged();
-        }
-
-        player.getInventory().setChanged();
-
-        this.broadcastChanges();
     }
 
     @Override
     public @NonNull ItemStack quickMoveStack(@NonNull Player player, int index) {
-        Slot slot = this.slots.get(index);
-
-        if (!slot.mayPickup(player)) {
-            return ItemStack.EMPTY;
-        }
-
-        if (!slot.hasItem()) {
-            return ItemStack.EMPTY;
-        }
-
-        ItemStack stackInSlot = slot.getItem();
-
-        if (stackInSlot.getItem() instanceof BackpackItem) {
-            return ItemStack.EMPTY;
-        }
-
-        ItemStack result = stackInSlot.copy();
-
-        boolean moved;
-
-        if (transferHelper.isBackpackMainSlot(index)) {
-            moved = transferHelper.moveFromBackpackToPlayer(stackInSlot);
-        } else if (transferHelper.isExtraStorageMenuSlot(index)) {
-            moved = transferHelper.moveFromExtraStorageToPlayer(stackInSlot);
-        } else if (transferHelper.isCraftingResultSlot(index)) {
-            moved = this.moveStackToRange(
-                    stackInSlot,
-                    transferHelper.playerInventoryStart(),
-                    this.slots.size(),
-                    true
-            );
-        } else if (transferHelper.isCraftingInputSlot(index)) {
-            moved = this.moveStackToRange(
-                    stackInSlot,
-                    transferHelper.playerInventoryStart(),
-                    this.slots.size(),
-                    false
-            );
-        } else {
-            moved = transferHelper.moveFromPlayerToBackpack(stackInSlot);
-        }
-
-        if (!moved) {
-            return ItemStack.EMPTY;
-        }
-
-        if (stackInSlot.isEmpty()) {
-            slot.set(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-
-        if (stackInSlot.getCount() == result.getCount()) {
-            return ItemStack.EMPTY;
-        }
-
-        slot.onTake(player, stackInSlot);
-
-        if (transferHelper.isCraftingResultSlot(index)) {
-            craftingMenuHandler.updateCraftingResult(player);
-        }
-
-        return result;
+        return BackpackMenuQuickMoveHandler.quickMoveStack(
+                this,
+                transferHelper,
+                craftingMenuHandler,
+                player,
+                index
+        );
     }
 
     @Override
@@ -619,128 +414,26 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         return false;
     }
 
-    public void handleCartographersCaseClick(
-            Player player,
-            int upgradeSlotIndex,
-            int navigationSlot
-    ) {
-        if (backpackStack.isEmpty()) {
-            return;
-        }
-
-        if (upgradeSlotIndex < 0 || upgradeSlotIndex >= this.slots.size()) {
-            return;
-        }
-
-        Slot upgradeSlot = this.slots.get(upgradeSlotIndex);
-        ItemStack upgradeStack = upgradeSlot.getItem();
-
-        if (!BackpackUpgradeHelper.isUpgrade(
-                upgradeStack,
-                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
-        )) {
-            return;
-        }
-
-        if (navigationSlot == CartographersCaseHelper.DEATH_SIGNAL_SLOT) {
-            int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
-
-            CartographersCaseData.setActiveSlot(
-                    backpackStack,
-                    activeSlot == CartographersCaseHelper.DEATH_SIGNAL_SLOT
-                            ? CartographersCaseHelper.NO_ACTIVE_SLOT
-                            : CartographersCaseHelper.DEATH_SIGNAL_SLOT
-            );
-
-            this.broadcastChanges();
-            return;
-        }
-
-        if (!CartographersCaseHelper.isCompassSlotIndex(navigationSlot)) {
-            return;
-        }
-
-        int compassInventoryIndex =
-                CartographersCaseHelper.toCompassInventoryIndex(navigationSlot);
-
-        ItemStack compass = cartographersCaseInventory.getItem(compassInventoryIndex);
-
-        if (compass.isEmpty()) {
-            return;
-        }
-
-        if (!CartographersCaseHelper.isValidLodestoneCompass(compass)) {
-            return;
-        }
-
-        int activeSlot = CartographersCaseData.getActiveSlot(backpackStack);
-
-        CartographersCaseData.setActiveSlot(
-                backpackStack,
-                activeSlot == navigationSlot
-                        ? CartographersCaseHelper.NO_ACTIVE_SLOT
-                        : navigationSlot
-        );
-
-        this.broadcastChanges();
-    }
-
     @Override
     public void slotsChanged(@NonNull Container container) {
         super.slotsChanged(container);
-
-        if (craftingMenuHandler != null
-                && craftingMenuHandler.isCraftingContainer(container)) {
-            craftingMenuHandler.updateCraftingResult(menuPlayer);
-        }
+        craftingMenuHandler.slotsChanged(container, menuPlayer);
     }
 
     @Override
     public void removed(@NonNull Player player) {
         super.removed(player);
 
-        if (inventory instanceof BackpackInventory backpackInventory) {
-            backpackInventory.saveToData();
-
-            if (cartographersCaseInventory instanceof CartographersCaseInventory cartographersCase) {
-                cartographersCase.saveToBackpack();
-            }
-
-            if (extraStorageInventory != null) {
-                extraStorageInventory.setChanged();
-            }
-
-            if (!player.level().isClientSide()) {
-                BackpackUpgradeHelper.hasUpgrade(
-                        backpackStack,
-                        BackpackUpgradeItem.Type.LANTERN_HOOK,
-                        tier,
-                        player.level().registryAccess()
-                );
-            }
-        } else {
-            inventory.setChanged();
-
-            if (extraStorageInventory != null) {
-                extraStorageInventory.setChanged();
-            }
-
-            if (blockEntity != null) {
-                blockEntity.setChanged();
-            }
-
-            if (!player.level().isClientSide()) {
-                BackpackUpgradeHelper.hasUpgrade(
-                        inventory,
-                        BackpackUpgradeItem.Type.LANTERN_HOOK,
-                        tier
-                );
-            }
-        }
-
-        if (craftingMenuHandler != null) {
-            craftingMenuHandler.returnCraftingGridToPlayer(player);
-        }
+        BackpackMenuSaveHandler.removed(
+                player,
+                inventory,
+                backpackStack,
+                blockEntity,
+                tier,
+                extraStorageMenuHandler,
+                cartographersCaseMenuHandler,
+                craftingMenuHandler
+        );
     }
 
     private Container createBlockExtraStorageContainer(BackpackBlockEntity blockEntity) {
@@ -774,16 +467,30 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     }
 
     public boolean hasAnyExtraStorageItem() {
-        if (extraStorageInventory == null) {
-            return false;
-        }
+        return extraStorageMenuHandler.hasAnyStoredItem();
+    }
 
-        for (int i = 0; i < extraStorageInventory.getContainerSize(); i++) {
-            if (!extraStorageInventory.getItem(i).isEmpty()) {
-                return true;
-            }
-        }
+    public int getSyncedCartographerActiveSlot() {
+        return cartographersCaseMenuHandler.getSyncedActiveSlot();
+    }
 
-        return false;
+    public boolean hasCartographersCaseUpgrade() {
+        return cartographersCaseMenuHandler.hasUpgrade();
+    }
+
+    public boolean hasAnyCartographersCaseItem() {
+        return cartographersCaseMenuHandler.hasAnyStoredItem();
+    }
+
+    public void handleCartographersCaseClick(
+            Player player,
+            int upgradeSlotIndex,
+            int navigationSlot
+    ) {
+        cartographersCaseMenuHandler.handleClick(
+                player,
+                upgradeSlotIndex,
+                navigationSlot
+        );
     }
 }

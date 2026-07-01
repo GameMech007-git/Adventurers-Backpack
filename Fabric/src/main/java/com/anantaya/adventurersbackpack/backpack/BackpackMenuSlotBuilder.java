@@ -40,6 +40,7 @@ public final class BackpackMenuSlotBuilder {
                 layout,
                 backpackInventory,
                 extraStorageInventory,
+                cartographersCaseInventory,
                 craftingAccess
         );
 
@@ -118,8 +119,9 @@ public final class BackpackMenuSlotBuilder {
             BackpackMenuLayout layout,
             Container inventory,
             Container extraStorageInventory,
+            Container cartographersCaseInventory,
             CraftingAccess craftingAccess
-    ){
+    ) {
         for (int i = 0; i < tier.upgradeSlots; i++) {
             final int slotIndex = tier.upgradeStart() + i;
 
@@ -150,6 +152,13 @@ public final class BackpackMenuSlotBuilder {
                             BackpackUpgradeItem.Type.EXTRA_STORAGE
                     )) {
                         return !hasAnyItem(extraStorageInventory);
+                    }
+
+                    if (BackpackUpgradeHelper.isUpgrade(
+                            stack,
+                            BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+                    )) {
+                        return !hasAnyItem(cartographersCaseInventory);
                     }
 
                     return true;
