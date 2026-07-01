@@ -45,6 +45,7 @@ public final class BackpackScreenUpgradePanel {
                 graphics,
                 stack,
                 screen.handler().getBackpackStackForClient(),
+                screen.handler().getSyncedCartographerActiveSlot(),
                 registries,
                 getConfigPanelX(screen),
                 getConfigPanelY(screen, slot),

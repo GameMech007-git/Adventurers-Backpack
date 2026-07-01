@@ -4,11 +4,11 @@
   "pattern": [
     " D ",
     " D ",
-    " S "
+    " B "
   ],
   "key": {
     "D": "minecraft:diamond",
-    "S": "minecraft:stone"
+    "B": "adventurersbackpack:upgrade_base"
   },
   "result": {
     "id": "adventurersbackpack:recall_rune",

@@ -6,11 +6,13 @@ import com.anantaya.adventurersbackpack.backpack.BackpackTier;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Block;
 
 public final class ModItems {
@@ -122,14 +124,22 @@ public final class ModItems {
     ) {
         Identifier id = Identifier.fromNamespaceAndPath(AdventurersBackpack.MOD_ID, name);
 
+        Item.Properties properties = new Item.Properties()
+                .setId(ResourceKey.create(Registries.ITEM, id))
+                .stacksTo(1);
+
+        if (type == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+            properties = properties
+                    .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
+                    .component(DataComponents.RARITY, Rarity.EPIC);
+        }
+
         return Registry.register(
                 BuiltInRegistries.ITEM,
                 id,
                 new BackpackUpgradeItem(
                         type,
-                        new Item.Properties()
-                                .setId(ResourceKey.create(Registries.ITEM, id))
-                                .stacksTo(1)
+                        properties
                 )
         );
     }

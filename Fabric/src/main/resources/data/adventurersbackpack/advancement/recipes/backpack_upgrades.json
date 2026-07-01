@@ -20,7 +20,8 @@
       "adventurersbackpack:crafting",
       "adventurersbackpack:extra_storage",
       "adventurersbackpack:fluid_storage",
-      "adventurersbackpack:recall_rune"
+      "adventurersbackpack:recall_rune",
+      "adventurersbackpack:cartographers_case"
     ]
   }
 }

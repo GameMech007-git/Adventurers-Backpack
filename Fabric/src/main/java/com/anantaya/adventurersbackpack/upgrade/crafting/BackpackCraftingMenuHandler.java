@@ -85,8 +85,8 @@ public final class BackpackCraftingMenuHandler {
         );
     }
 
-    public boolean hasUpgradeSynced() {
-        return syncedCraftingActive == 1;
+    public boolean isCraftingPanelHiddenSynced() {
+        return syncedCraftingActive != 1;
     }
 
     public void slotsChanged(

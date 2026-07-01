@@ -13,9 +13,12 @@ import com.anantaya.adventurersbackpack.upgrade.fluidstorage.FluidStorageType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -24,12 +27,16 @@ import net.minecraft.world.level.storage.ValueOutput;
 public class BackpackBlockEntity extends BlockEntity {
 
     private static final String EXTRA_STORAGE_KEY = "ExtraStorage";
+    private static final String CARTOGRAPHERS_CASE_KEY = "CartographersCase";
+
+    private CompoundTag cartographersCaseTag = new CompoundTag();
 
     private final BackpackTier tier;
     private NonNullList<ItemStack> items;
     private NonNullList<ItemStack> extraStorageItems;
     private FluidStorageType fluidType = FluidStorageType.NONE;
     private int fluidAmount = 0;
+
 
     public BackpackBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.BACKPACK_BLOCK_ENTITY, pos, state);
@@ -158,6 +165,8 @@ public class BackpackBlockEntity extends BlockEntity {
                 this.tier
         );
 
+        saveCartographersCaseToBackpackStack(drop);
+
         return drop;
     }
 
@@ -187,6 +196,7 @@ public class BackpackBlockEntity extends BlockEntity {
 
         this.fluidType = BackpackFluidStorageHelper.getType(stack);
         this.fluidAmount = BackpackFluidStorageHelper.getAmount(stack);
+        loadCartographersCaseFromBackpackStack(stack);
 
         this.setChanged();
     }
@@ -337,6 +347,52 @@ public class BackpackBlockEntity extends BlockEntity {
         if (this.fluidAmount <= 0) {
             this.fluidType = FluidStorageType.NONE;
         }
+    }
+
+    public ItemStack createCartographersCaseBackpackStack() {
+        ItemStack stack = switch (this.tier) {
+            case IRON -> new ItemStack(ModItems.BACKPACK_IRON);
+            case DIAMOND -> new ItemStack(ModItems.BACKPACK_DIAMOND);
+            case NETHERITE -> new ItemStack(ModItems.BACKPACK_NETHERITE);
+        };
+
+        saveCartographersCaseToBackpackStack(stack);
+
+        return stack;
+    }
+
+    public void loadCartographersCaseFromBackpackStack(ItemStack stack) {
+        this.cartographersCaseTag = new CompoundTag();
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+
+        if (customData == null) {
+            setChanged();
+            return;
+        }
+
+        CompoundTag tag = customData.copyTag();
+
+        tag.getCompound(CARTOGRAPHERS_CASE_KEY).ifPresent(cartographerTag ->
+                this.cartographersCaseTag = cartographerTag.copy()
+        );
+
+        setChanged();
+    }
+
+    public void saveCartographersCaseToBackpackStack(ItemStack stack) {
+        if (stack.isEmpty() || this.cartographersCaseTag.isEmpty()) {
+            return;
+        }
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        CompoundTag tag = customData == null
+                ? new CompoundTag()
+                : customData.copyTag();
+
+        tag.put(CARTOGRAPHERS_CASE_KEY, this.cartographersCaseTag.copy());
+
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
 }

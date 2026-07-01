@@ -29,14 +29,13 @@ public final class CartographersCaseConfigPanel {
             GuiGraphicsExtractor graphics,
             ItemStack backpackStack,
             HolderLookup.Provider registries,
+            int syncedActiveSlot,
             int panelX,
             int panelY,
             int mouseX,
             int mouseY
     ) {
-        int activeSlot = backpackStack.isEmpty()
-                ? CartographersCaseHelper.NO_ACTIVE_SLOT
-                : CartographersCaseData.getActiveSlot(backpackStack);
+        int activeSlot = syncedActiveSlot;
 
         drawStatusText(
                 graphics,
@@ -134,9 +133,15 @@ public final class CartographersCaseConfigPanel {
             int panelY,
             int activeSlot
     ) {
-        String text = activeSlot == CartographersCaseHelper.NO_ACTIVE_SLOT
-                ? "OFF"
-                : "TRACK " + activeSlot;
+        String text;
+
+        if (activeSlot == CartographersCaseHelper.NO_ACTIVE_SLOT) {
+            text = "OFF";
+        } else if (activeSlot == DEATH_SLOT) {
+            text = "DEATH";
+        } else {
+            text = "SLOT " + activeSlot;
+        }
 
         int color = activeSlot == CartographersCaseHelper.NO_ACTIVE_SLOT
                 ? 0xFFAA5555
@@ -208,30 +213,48 @@ public final class CartographersCaseConfigPanel {
             int mouseX,
             int mouseY
     ) {
-        int slotX = cellX(panelX, DEATH_SLOT);
-        int slotY = cellY(panelY, DEATH_SLOT);
+        for (int i = 0; i < 9; i++) {
+            int slotX = cellX(panelX, i);
+            int slotY = cellY(panelY, i);
 
-        if (!UpgradePanelUtil.isInside(
-                mouseX,
-                mouseY,
-                slotX,
-                slotY,
-                SLOT_SIZE,
-                SLOT_SIZE
-        )) {
+            if (!UpgradePanelUtil.isInside(
+                    mouseX,
+                    mouseY,
+                    slotX,
+                    slotY,
+                    SLOT_SIZE,
+                    SLOT_SIZE
+            )) {
+                continue;
+            }
+
+            if (i == DEATH_SLOT) {
+                boolean hasDeath = !backpackStack.isEmpty()
+                        && CartographersCaseData.getDeathTarget(backpackStack).isPresent();
+
+                graphics.setTooltipForNextFrame(
+                        Component.literal(hasDeath
+                                ? "Death Signal: click to track your last death."
+                                : "Death Signal: no death recorded yet."),
+                        mouseX,
+                        mouseY
+                );
+
+                return;
+            }
+
+            graphics.setComponentTooltipForNextFrame(
+                    net.minecraft.client.Minecraft.getInstance().font,
+                    java.util.List.of(
+                            Component.literal("Lodestone Compass"),
+                            Component.literal("Shift-click to activate")
+                    ),
+                    mouseX,
+                    mouseY
+            );
+
             return;
         }
-
-        boolean hasDeath = !backpackStack.isEmpty()
-                && CartographersCaseData.getDeathTarget(backpackStack).isPresent();
-
-        graphics.setTooltipForNextFrame(
-                Component.literal(hasDeath
-                        ? "Death Signal: click to track your last death."
-                        : "Death Signal: no death recorded yet."),
-                mouseX,
-                mouseY
-        );
     }
 
     private static int cellX(int panelX, int index) {

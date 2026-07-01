@@ -94,7 +94,7 @@ public final class BackpackScreenPanels {
             }
 
             if (screen.handler().isCraftingMenuSlot(i)
-                    && screen.handler().hasCraftingUpgradeSynced()) {
+                    && screen.handler().isCraftingPanelHiddenSynced()) {
                 continue;
             }
 
@@ -481,7 +481,7 @@ public final class BackpackScreenPanels {
             BackpackScreen screen,
             GuiGraphicsExtractor graphics
     ) {
-        if (screen.handler().hasCraftingUpgradeSynced()) {
+        if (screen.handler().isCraftingPanelHiddenSynced()) {
             return;
         }
 
@@ -498,7 +498,7 @@ public final class BackpackScreenPanels {
             double mouseX,
             double mouseY
     ) {
-        if (screen.handler().hasCraftingUpgradeSynced()) {
+        if (screen.handler().isCraftingPanelHiddenSynced()) {
             return false;
         }
 

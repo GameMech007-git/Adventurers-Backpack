@@ -153,8 +153,8 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         return craftingMenuHandler.hasUpgrade();
     }
 
-    public boolean hasCraftingUpgradeSynced() {
-        return craftingMenuHandler.hasUpgradeSynced();
+    public boolean isCraftingPanelHiddenSynced() {
+        return craftingMenuHandler.isCraftingPanelHiddenSynced();
     }
 
     public ItemStack getBackpackStackForClient() {
@@ -167,7 +167,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     ) {
         super(menuTypeForTier(blockEntity.getTier()), syncId);
 
-        this.backpackStack = ItemStack.EMPTY;
+        this.backpackStack = blockEntity.createCartographersCaseBackpackStack();
         this.blockEntity = blockEntity;
         this.sourceSlot = -1;
         this.tier = blockEntity.getTier();
@@ -185,10 +185,10 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 tier
         );
 
-        this.cartographersCaseInventory = new SimpleContainer(
-                CartographersCaseHelper.LODESTONE_COMPASS_SLOT_COUNT
+        this.cartographersCaseInventory = new CartographersCaseInventory(
+                backpackStack,
+                playerInventory.player.level().registryAccess()
         );
-
         this.upgradePanelState = new UpgradePanelState();
 
         this.cartographersCaseMenuHandler = new CartographersCaseMenuHandler(

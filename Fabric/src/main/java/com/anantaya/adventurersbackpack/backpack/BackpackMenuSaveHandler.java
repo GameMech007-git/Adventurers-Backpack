@@ -42,8 +42,10 @@ public final class BackpackMenuSaveHandler {
         } else {
             inventory.setChanged();
             extraStorageMenuHandler.setChanged();
+            cartographersCaseMenuHandler.saveToBackpack();
 
             if (blockEntity != null) {
+                blockEntity.loadCartographersCaseFromBackpackStack(backpackStack);
                 blockEntity.setChanged();
             }
 

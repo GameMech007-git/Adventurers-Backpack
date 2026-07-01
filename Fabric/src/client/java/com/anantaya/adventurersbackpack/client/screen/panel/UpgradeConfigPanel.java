@@ -24,12 +24,13 @@ public final class UpgradeConfigPanel {
             GuiGraphicsExtractor graphics,
             ItemStack upgradeStack,
             ItemStack backpackStack,
+            int syncedCartographerActiveSlot,
             HolderLookup.Provider registries,
             int panelX,
             int panelY,
             int mouseX,
             int mouseY
-    ) {
+    ){
         if (!(upgradeStack.getItem() instanceof BackpackUpgradeItem upgradeItem)) {
             return;
         }
@@ -67,6 +68,7 @@ public final class UpgradeConfigPanel {
                     graphics,
                     backpackStack,
                     registries,
+                    syncedCartographerActiveSlot,
                     panelX,
                     panelY,
                     mouseX,
