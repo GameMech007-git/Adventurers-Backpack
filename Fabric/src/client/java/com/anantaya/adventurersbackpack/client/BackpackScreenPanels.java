@@ -42,7 +42,7 @@ public final class BackpackScreenPanels {
             BackpackScreen screen,
             GuiGraphicsExtractor graphics
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return;
         }
 
@@ -153,7 +153,7 @@ public final class BackpackScreenPanels {
             int mouseX,
             int mouseY
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return false;
         }
 
@@ -197,25 +197,7 @@ public final class BackpackScreenPanels {
     }
 
     public static boolean hasFluidStorageUpgrade(BackpackScreen screen) {
-        int start = screen.handler().tier.upgradeStart();
-        int end = screen.handler().tier.totalSlots;
-
-        for (int i = start; i < end && i < screen.handler().slots.size(); i++) {
-            Slot slot = screen.handler().slots.get(i);
-
-            if (!slot.hasItem()) {
-                continue;
-            }
-
-            ItemStack stack = slot.getItem();
-
-            if (stack.getItem() instanceof BackpackUpgradeItem upgradeItem
-                    && upgradeItem.getType() == BackpackUpgradeItem.Type.FLUID_STORAGE) {
-                return false;
-            }
-        }
-
-        return true;
+        return screen.handler().hasFluidStorageUpgrade();
     }
 
     public static boolean shouldShowTrashSlot() {
@@ -261,7 +243,7 @@ public final class BackpackScreenPanels {
             double mouseX,
             double mouseY
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return false;
         }
 
@@ -280,7 +262,7 @@ public final class BackpackScreenPanels {
             int mouseX,
             int mouseY
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return;
         }
 

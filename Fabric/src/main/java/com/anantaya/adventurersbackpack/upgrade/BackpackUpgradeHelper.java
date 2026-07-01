@@ -2,6 +2,7 @@ package com.anantaya.adventurersbackpack.upgrade;
 
 import com.anantaya.adventurersbackpack.backpack.BackpackItem;
 import com.anantaya.adventurersbackpack.backpack.BackpackTier;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeData;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -70,7 +71,11 @@ public final class BackpackUpgradeHelper {
             }
         }
 
-        return false;
+        return NestedUpgradeData.hasUpgrade(
+                backpackStack,
+                type,
+                registryAccess
+        );
     }
 
     public static boolean hasUpgrade(

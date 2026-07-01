@@ -78,6 +78,33 @@ public final class UpgradeConfigPanel {
             return;
         }
 
+        if (upgradeItem.getType() == BackpackUpgradeItem.Type.NESTED_UPGRADE) {
+            BackpackGuiRenderer.drawConfigPanel(
+                    graphics,
+                    panelX,
+                    panelY,
+                    48,
+                    48
+            );
+
+            int gridX = 8;
+            int gridY = 8;
+            int slotSize = 18;
+
+            for (int i = 0; i < 4; i++) {
+                int col = i % 2;
+                int row = i / 2;
+
+                BackpackGuiRenderer.drawSingleSlotFrame(
+                        graphics,
+                        panelX + gridX + col * slotSize - 1,
+                        panelY + gridY + row * slotSize - 1
+                );
+            }
+
+            return;
+        }
+
         if (upgradeItem.getType() == BackpackUpgradeItem.Type.AUTO_PICKUP) {
             BackpackGuiRenderer.drawConfigPanel(
                     graphics,

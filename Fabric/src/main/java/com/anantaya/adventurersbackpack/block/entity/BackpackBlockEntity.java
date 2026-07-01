@@ -10,6 +10,7 @@ import com.anantaya.adventurersbackpack.registry.ModItems;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.ExtraStorageInventory;
 import com.anantaya.adventurersbackpack.upgrade.fluidstorage.BackpackFluidStorageHelper;
 import com.anantaya.adventurersbackpack.upgrade.fluidstorage.FluidStorageType;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -30,6 +31,7 @@ public class BackpackBlockEntity extends BlockEntity {
     private static final String CARTOGRAPHERS_CASE_KEY = "CartographersCase";
 
     private CompoundTag cartographersCaseTag = new CompoundTag();
+    private CompoundTag nestedUpgradeTag = new CompoundTag();
 
     private final BackpackTier tier;
     private NonNullList<ItemStack> items;
@@ -166,6 +168,7 @@ public class BackpackBlockEntity extends BlockEntity {
         );
 
         saveCartographersCaseToBackpackStack(drop);
+        saveNestedUpgradeToBackpackStack(drop);
 
         return drop;
     }
@@ -197,6 +200,7 @@ public class BackpackBlockEntity extends BlockEntity {
         this.fluidType = BackpackFluidStorageHelper.getType(stack);
         this.fluidAmount = BackpackFluidStorageHelper.getAmount(stack);
         loadCartographersCaseFromBackpackStack(stack);
+        loadNestedUpgradeFromBackpackStack(stack);
 
         this.setChanged();
     }
@@ -317,6 +321,22 @@ public class BackpackBlockEntity extends BlockEntity {
 
         output.putString("FluidType", this.fluidType.id());
         output.putInt("FluidAmount", this.fluidAmount);
+
+        if (!this.cartographersCaseTag.isEmpty()) {
+            output.store(
+                    CARTOGRAPHERS_CASE_KEY,
+                    CompoundTag.CODEC,
+                    this.cartographersCaseTag
+            );
+        }
+
+        if (!this.nestedUpgradeTag.isEmpty()) {
+            output.store(
+                    NestedUpgradeData.KEY,
+                    CompoundTag.CODEC,
+                    this.nestedUpgradeTag
+            );
+        }
     }
 
     @Override
@@ -347,6 +367,16 @@ public class BackpackBlockEntity extends BlockEntity {
         if (this.fluidAmount <= 0) {
             this.fluidType = FluidStorageType.NONE;
         }
+
+        this.cartographersCaseTag = input.read(
+                CARTOGRAPHERS_CASE_KEY,
+                CompoundTag.CODEC
+        ).map(CompoundTag::copy).orElseGet(CompoundTag::new);
+
+        this.nestedUpgradeTag = input.read(
+                NestedUpgradeData.KEY,
+                CompoundTag.CODEC
+        ).map(CompoundTag::copy).orElseGet(CompoundTag::new);
     }
 
     public ItemStack createCartographersCaseBackpackStack() {
@@ -357,6 +387,7 @@ public class BackpackBlockEntity extends BlockEntity {
         };
 
         saveCartographersCaseToBackpackStack(stack);
+        saveNestedUpgradeToBackpackStack(stack);
 
         return stack;
     }
@@ -391,6 +422,40 @@ public class BackpackBlockEntity extends BlockEntity {
                 : customData.copyTag();
 
         tag.put(CARTOGRAPHERS_CASE_KEY, this.cartographersCaseTag.copy());
+
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+    }
+
+    public void loadNestedUpgradeFromBackpackStack(ItemStack stack) {
+        this.nestedUpgradeTag = new CompoundTag();
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+
+        if (customData == null) {
+            setChanged();
+            return;
+        }
+
+        CompoundTag tag = customData.copyTag();
+
+        tag.getCompound(NestedUpgradeData.KEY).ifPresent(nestedTag ->
+                this.nestedUpgradeTag = nestedTag.copy()
+        );
+
+        setChanged();
+    }
+
+    public void saveNestedUpgradeToBackpackStack(ItemStack stack) {
+        if (stack.isEmpty() || this.nestedUpgradeTag.isEmpty()) {
+            return;
+        }
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        CompoundTag tag = customData == null
+                ? new CompoundTag()
+                : customData.copyTag();
+
+        tag.put(NestedUpgradeData.KEY, this.nestedUpgradeTag.copy());
 
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }

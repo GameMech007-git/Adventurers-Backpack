@@ -2,10 +2,8 @@ package com.anantaya.adventurersbackpack.upgrade.extrastorage;
 
 import com.anantaya.adventurersbackpack.backpack.BackpackScreenHandler;
 import com.anantaya.adventurersbackpack.backpack.BackpackTier;
-import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import net.minecraft.world.Container;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.DataSlot;
 
 public final class ExtraStorageMenuHandler {
@@ -33,10 +31,8 @@ public final class ExtraStorageMenuHandler {
         menu.addMenuDataSlot(new DataSlot() {
             @Override
             public int get() {
-                return BackpackUpgradeHelper.hasUpgrade(
-                        backpackInventory,
-                        BackpackUpgradeItem.Type.EXTRA_STORAGE,
-                        tier
+                return menu.hasUpgradeInstalled(
+                        BackpackUpgradeItem.Type.EXTRA_STORAGE
                 ) ? 1 : 0;
             }
 
@@ -52,10 +48,8 @@ public final class ExtraStorageMenuHandler {
     }
 
     public boolean canUseSlots() {
-        if (BackpackUpgradeHelper.hasUpgrade(
-                backpackInventory,
-                BackpackUpgradeItem.Type.EXTRA_STORAGE,
-                tier
+        if (menu.hasUpgradeInstalled(
+                BackpackUpgradeItem.Type.EXTRA_STORAGE
         )) {
             return true;
         }

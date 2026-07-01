@@ -115,7 +115,8 @@ public final class BackpackScreenUpgradePanel {
         ItemStack stack = slot.getItem();
 
         if (stack.getItem() instanceof BackpackUpgradeItem upgradeItem
-                && upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+                && (upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.NESTED_UPGRADE)) {
             return screen.screenTop() + screen.layout().upgradeSlotY(0);
         }
 
@@ -157,6 +158,9 @@ public final class BackpackScreenUpgradePanel {
             } else if (upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
                 panelW = 64;
                 panelH = 74;
+            } else if (upgradeItem.getType() == BackpackUpgradeItem.Type.NESTED_UPGRADE) {
+                panelW = 48;
+                panelH = 48;
             }
         }
 
@@ -184,7 +188,8 @@ public final class BackpackScreenUpgradePanel {
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.FOOD_POUCH
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.RESTOCK
                 || upgradeItem.getType() == BackpackUpgradeItem.Type.RECALL_RUNE
-                || upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE;
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+                || upgradeItem.getType() == BackpackUpgradeItem.Type.NESTED_UPGRADE;
     }
 
 

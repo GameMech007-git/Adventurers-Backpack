@@ -78,10 +78,8 @@ public final class BackpackCraftingMenuHandler {
     }
 
     public boolean hasUpgrade() {
-        return BackpackUpgradeHelper.hasUpgrade(
-                backpackInventory,
-                BackpackUpgradeItem.Type.CRAFTING,
-                tier
+        return menu.hasUpgradeInstalled(
+                BackpackUpgradeItem.Type.CRAFTING
         );
     }
 

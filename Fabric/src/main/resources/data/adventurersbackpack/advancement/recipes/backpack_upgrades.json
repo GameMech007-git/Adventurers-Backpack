@@ -21,7 +21,8 @@
       "adventurersbackpack:extra_storage",
       "adventurersbackpack:fluid_storage",
       "adventurersbackpack:recall_rune",
-      "adventurersbackpack:cartographers_case"
+      "adventurersbackpack:cartographers_case",
+      "adventurersbackpack:nested_upgrade"
     ]
   }
 }

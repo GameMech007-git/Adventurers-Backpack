@@ -13,8 +13,29 @@ public class BackpackUpgradeItem extends Item {
         EXTRA_STORAGE,
         CRAFTING,
         RECALL_RUNE,
-        CARTOGRAPHERS_CASE
+        CARTOGRAPHERS_CASE,
+        NESTED_UPGRADE;
 
+        public boolean hasConfigPanel() {
+            return switch (this) {
+                case AUTO_PICKUP,
+                     FOOD_POUCH,
+                     RESTOCK,
+                     RECALL_RUNE,
+                     CARTOGRAPHERS_CASE,
+                     NESTED_UPGRADE -> true;
+
+                case LANTERN_HOOK,
+                     FLUID_STORAGE,
+                     EXTRA_STORAGE,
+                     CRAFTING -> false;
+            };
+        }
+
+        public boolean canBeNested() {
+            return this != NESTED_UPGRADE
+                    && !this.hasConfigPanel();
+        }
     }
 
     private final Type type;

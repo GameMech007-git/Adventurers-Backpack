@@ -91,6 +91,11 @@ public final class ModItems {
                     BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
             );
 
+    public static final Item NESTED_UPGRADE = registerUpgradeItem(
+            "nested_upgrade",
+            BackpackUpgradeItem.Type.NESTED_UPGRADE
+    );
+
     private ModItems() {
     }
 

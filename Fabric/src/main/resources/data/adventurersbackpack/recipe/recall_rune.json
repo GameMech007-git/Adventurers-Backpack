@@ -2,13 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    " D ",
-    " D ",
+    "D D",
+    " A ",
     " B "
   ],
   "key": {
     "D": "minecraft:diamond",
-    "B": "adventurersbackpack:upgrade_base"
+    "B": "adventurersbackpack:upgrade_base",
+    "A": "minecraft:amethyst_shard"
   },
   "result": {
     "id": "adventurersbackpack:recall_rune",

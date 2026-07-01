@@ -104,10 +104,8 @@ public final class BackpackFluidMenuHandler {
             return;
         }
 
-        boolean hasFluidStorage = BackpackUpgradeHelper.hasUpgrade(
-                inventory,
-                BackpackUpgradeItem.Type.FLUID_STORAGE,
-                tier
+        boolean hasFluidStorage = menu.hasUpgradeInstalled(
+                BackpackUpgradeItem.Type.FLUID_STORAGE
         );
 
         if (!hasFluidStorage) {

@@ -6,6 +6,7 @@ import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.crafting.BackpackCraftingMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.ExtraStorageMenuHandler;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeMenuHandler;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,12 +24,14 @@ public final class BackpackMenuSaveHandler {
             BackpackTier tier,
             ExtraStorageMenuHandler extraStorageMenuHandler,
             CartographersCaseMenuHandler cartographersCaseMenuHandler,
+            NestedUpgradeMenuHandler nestedUpgradeMenuHandler,
             BackpackCraftingMenuHandler craftingMenuHandler
     ) {
         if (inventory instanceof BackpackInventory backpackInventory) {
             backpackInventory.saveToData();
 
             cartographersCaseMenuHandler.saveToBackpack();
+            nestedUpgradeMenuHandler.saveToBackpack();
             extraStorageMenuHandler.setChanged();
 
             if (!player.level().isClientSide()) {
@@ -43,9 +46,11 @@ public final class BackpackMenuSaveHandler {
             inventory.setChanged();
             extraStorageMenuHandler.setChanged();
             cartographersCaseMenuHandler.saveToBackpack();
+            nestedUpgradeMenuHandler.saveToBackpack();
 
             if (blockEntity != null) {
                 blockEntity.loadCartographersCaseFromBackpackStack(backpackStack);
+                blockEntity.loadNestedUpgradeFromBackpackStack(backpackStack);
                 blockEntity.setChanged();
             }
 

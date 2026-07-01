@@ -5,6 +5,7 @@ import com.anantaya.adventurersbackpack.menu.BackpackTrashHelper;
 import com.anantaya.adventurersbackpack.registry.ModMenus;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigAction;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigDispatcher;
+import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseInventory;
@@ -16,6 +17,9 @@ import com.anantaya.adventurersbackpack.upgrade.extrastorage.ExtraStorageInvento
 import com.anantaya.adventurersbackpack.upgrade.extrastorage.ExtraStorageMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.fluidstorage.BackpackFluidMenuHandler;
 import com.anantaya.adventurersbackpack.upgrade.fluidstorage.FluidStorageType;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeData;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeInventory;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeMenuHandler;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -33,8 +37,10 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     final BackpackMenuLayout layout;
     final Container extraStorageInventory;
     final Container cartographersCaseInventory;
+    final Container nestedUpgradeInventory;
     final int extraStorageSlots;
     final int sourceSlot;
+
 
     public final BackpackTier tier;
 
@@ -44,6 +50,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
     private final Player menuPlayer;
     private final UpgradePanelState upgradePanelState;
     private final CartographersCaseMenuHandler cartographersCaseMenuHandler;
+    private final NestedUpgradeMenuHandler nestedUpgradeMenuHandler;
     private final ExtraStorageMenuHandler extraStorageMenuHandler;
 
     public BackpackScreenHandler(
@@ -88,12 +95,25 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 registryAccess
         );
 
+        this.nestedUpgradeInventory = new NestedUpgradeInventory(
+                stack,
+                registryAccess
+        );
+
         this.upgradePanelState = new UpgradePanelState();
 
         this.cartographersCaseMenuHandler = new CartographersCaseMenuHandler(
                 this,
                 inventory,
                 cartographersCaseInventory,
+                backpackStack,
+                tier
+        );
+
+        this.nestedUpgradeMenuHandler = new NestedUpgradeMenuHandler(
+                this,
+                inventory,
+                nestedUpgradeInventory,
                 backpackStack,
                 tier
         );
@@ -189,12 +209,26 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 backpackStack,
                 playerInventory.player.level().registryAccess()
         );
+
+        this.nestedUpgradeInventory = new NestedUpgradeInventory(
+                backpackStack,
+                playerInventory.player.level().registryAccess()
+        );
+
         this.upgradePanelState = new UpgradePanelState();
 
         this.cartographersCaseMenuHandler = new CartographersCaseMenuHandler(
                 this,
                 inventory,
                 cartographersCaseInventory,
+                backpackStack,
+                tier
+        );
+
+        this.nestedUpgradeMenuHandler = new NestedUpgradeMenuHandler(
+                this,
+                inventory,
+                nestedUpgradeInventory,
                 backpackStack,
                 tier
         );
@@ -317,6 +351,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 inventory,
                 extraStorageInventory,
                 cartographersCaseInventory,
+                nestedUpgradeInventory,
                 playerInventory,
                 this::canUseExtraStorageSlots,
                 new BackpackMenuSlotBuilder.CraftingAccess() {
@@ -432,6 +467,7 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 tier,
                 extraStorageMenuHandler,
                 cartographersCaseMenuHandler,
+                nestedUpgradeMenuHandler,
                 craftingMenuHandler
         );
     }
@@ -482,6 +518,14 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         return cartographersCaseMenuHandler.hasAnyStoredItem();
     }
 
+    public boolean hasNestedUpgrade() {
+        return nestedUpgradeMenuHandler.hasUpgrade();
+    }
+
+    public boolean hasAnyNestedUpgradeItem() {
+        return nestedUpgradeMenuHandler.hasAnyStoredItem();
+    }
+
     public void handleCartographersCaseClick(
             Player player,
             int upgradeSlotIndex,
@@ -492,5 +536,24 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
                 upgradeSlotIndex,
                 navigationSlot
         );
+    }
+
+    public boolean hasUpgradeInstalled(BackpackUpgradeItem.Type type) {
+        if (BackpackUpgradeHelper.hasUpgrade(
+                inventory,
+                type,
+                tier
+        )) {
+            return true;
+        }
+
+        return NestedUpgradeData.hasUpgrade(
+                nestedUpgradeInventory,
+                type
+        );
+    }
+
+    public boolean hasFluidStorageUpgrade() {
+        return hasUpgradeInstalled(BackpackUpgradeItem.Type.FLUID_STORAGE);
     }
 }
