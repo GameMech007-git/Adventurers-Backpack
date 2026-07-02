@@ -1,6 +1,7 @@
 package com.anantaya.adventurersbackpack.upgrade.fluidstorage;
 
 import com.anantaya.adventurersbackpack.backpack.BackpackInventory;
+import com.anantaya.adventurersbackpack.backpack.BackpackScreenHandler;
 import com.anantaya.adventurersbackpack.backpack.BackpackTier;
 import com.anantaya.adventurersbackpack.block.entity.BackpackBlockEntity;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
@@ -12,20 +13,24 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 
 public final class BackpackFluidMenuHandler {
 
-    private final AbstractContainerMenu menu;
+    private final BackpackScreenHandler menu;
     private final Container inventory;
     private final ItemStack backpackStack;
     private final @Nullable BackpackBlockEntity blockEntity;
     private final BackpackTier tier;
 
+    private int syncedFluidTypeId = FluidStorageType.NONE.networkId();
+    private int syncedFluidAmount = 0;
+
     public BackpackFluidMenuHandler(
-            AbstractContainerMenu menu,
+            BackpackScreenHandler menu,
             Container inventory,
             ItemStack backpackStack,
             @Nullable BackpackBlockEntity blockEntity,
@@ -38,6 +43,58 @@ public final class BackpackFluidMenuHandler {
         this.tier = tier;
     }
 
+    public void addDataSlots() {
+        menu.addMenuDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                if (blockEntity != null) {
+                    return blockEntity.getFluidType().networkId();
+                }
+
+                if (!backpackStack.isEmpty()) {
+                    return BackpackFluidStorageHelper
+                            .getType(backpackStack)
+                            .networkId();
+                }
+
+                return FluidStorageType.NONE.networkId();
+            }
+
+            @Override
+            public void set(int value) {
+                syncedFluidTypeId = value;
+            }
+        });
+
+        menu.addMenuDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                if (blockEntity != null) {
+                    return blockEntity.getFluidAmount();
+                }
+
+                if (!backpackStack.isEmpty()) {
+                    return BackpackFluidStorageHelper.getAmount(backpackStack);
+                }
+
+                return 0;
+            }
+
+            @Override
+            public void set(int value) {
+                syncedFluidAmount = value;
+            }
+        });
+    }
+
+    public FluidStorageType getSyncedFluidType() {
+        return FluidStorageType.byNetworkId(syncedFluidTypeId);
+    }
+
+    public int getSyncedFluidAmount() {
+        return syncedFluidAmount;
+    }
+
     public void handleFluidStorageClick(Player player) {
         if (player == null) {
             return;
@@ -47,10 +104,8 @@ public final class BackpackFluidMenuHandler {
             return;
         }
 
-        boolean hasFluidStorage = BackpackUpgradeHelper.hasUpgrade(
-                inventory,
-                BackpackUpgradeItem.Type.FLUID_STORAGE,
-                tier
+        boolean hasFluidStorage = menu.hasUpgradeInstalled(
+                BackpackUpgradeItem.Type.FLUID_STORAGE
         );
 
         if (!hasFluidStorage) {

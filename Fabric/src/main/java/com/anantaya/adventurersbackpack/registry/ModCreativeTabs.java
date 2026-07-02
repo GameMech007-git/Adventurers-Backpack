@@ -26,6 +26,8 @@ public final class ModCreativeTabs {
                     output.accept(ModItems.UPGRADE_BASE);
                     output.accept(ModItems.RECALL_RUNE);
                     output.accept(ModItems.RECALL_SHARD);
+                    output.accept(ModItems.CARTOGRAPHERS_CASE);
+                    output.accept(ModItems.NESTED_UPGRADE);
 
                 });
     }

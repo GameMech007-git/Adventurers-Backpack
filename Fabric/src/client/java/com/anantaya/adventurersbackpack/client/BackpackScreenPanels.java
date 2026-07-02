@@ -42,7 +42,7 @@ public final class BackpackScreenPanels {
             BackpackScreen screen,
             GuiGraphicsExtractor graphics
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return;
         }
 
@@ -82,17 +82,21 @@ public final class BackpackScreenPanels {
             int y
     ) {
         for (int i = 0; i < screen.handler().slots.size(); i++) {
+            Slot slot = screen.handler().slots.get(i);
+
+            if (!slot.isActive()) {
+                continue;
+            }
+
             if (screen.handler().isExtraStorageMenuSlot(i)
                     && !hasExtraStoragePanel(screen)) {
                 continue;
             }
 
             if (screen.handler().isCraftingMenuSlot(i)
-                    && screen.handler().hasCraftingUpgradeSynced()) {
+                    && screen.handler().isCraftingPanelHiddenSynced()) {
                 continue;
             }
-
-            Slot slot = screen.handler().slots.get(i);
 
             BackpackGuiRenderer.drawSingleSlotFrame(
                     graphics,
@@ -135,6 +139,13 @@ public final class BackpackScreenPanels {
                 mouseX,
                 mouseY
         );
+
+        drawBlockedCartographersCaseUpgradeTooltip(
+                screen,
+                graphics,
+                mouseX,
+                mouseY
+        );
     }
 
     public static boolean handleFluidStorageFakeSlotClick(
@@ -142,7 +153,7 @@ public final class BackpackScreenPanels {
             int mouseX,
             int mouseY
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return false;
         }
 
@@ -186,25 +197,7 @@ public final class BackpackScreenPanels {
     }
 
     public static boolean hasFluidStorageUpgrade(BackpackScreen screen) {
-        int start = screen.handler().tier.upgradeStart();
-        int end = screen.handler().tier.totalSlots;
-
-        for (int i = start; i < end && i < screen.handler().slots.size(); i++) {
-            Slot slot = screen.handler().slots.get(i);
-
-            if (!slot.hasItem()) {
-                continue;
-            }
-
-            ItemStack stack = slot.getItem();
-
-            if (stack.getItem() instanceof BackpackUpgradeItem upgradeItem
-                    && upgradeItem.getType() == BackpackUpgradeItem.Type.FLUID_STORAGE) {
-                return false;
-            }
-        }
-
-        return true;
+        return screen.handler().hasFluidStorageUpgrade();
     }
 
     public static boolean shouldShowTrashSlot() {
@@ -250,7 +243,7 @@ public final class BackpackScreenPanels {
             double mouseX,
             double mouseY
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return false;
         }
 
@@ -269,7 +262,7 @@ public final class BackpackScreenPanels {
             int mouseX,
             int mouseY
     ) {
-        if (hasFluidStorageUpgrade(screen)) {
+        if (!hasFluidStorageUpgrade(screen)) {
             return;
         }
 
@@ -361,6 +354,60 @@ public final class BackpackScreenPanels {
         );
     }
 
+    private static void drawBlockedCartographersCaseUpgradeTooltip(
+            BackpackScreen screen,
+            GuiGraphicsExtractor graphics,
+            int mouseX,
+            int mouseY
+    ) {
+        if (!screen.handler().hasAnyCartographersCaseItem()) {
+            return;
+        }
+
+        int start = screen.handler().tier.upgradeStart();
+        int end = screen.handler().tier.totalSlots;
+
+        for (int i = start; i < end && i < screen.handler().slots.size(); i++) {
+            Slot slot = screen.handler().slots.get(i);
+
+            int slotX = screen.screenLeft() + slot.x;
+            int slotY = screen.screenTop() + slot.y;
+
+            boolean hovering =
+                    mouseX >= slotX
+                            && mouseX < slotX + 18
+                            && mouseY >= slotY
+                            && mouseY < slotY + 18;
+
+            if (!hovering) {
+                continue;
+            }
+
+            ItemStack stack = slot.getItem();
+
+            if (!(stack.getItem() instanceof BackpackUpgradeItem upgradeItem)) {
+                continue;
+            }
+
+            if (upgradeItem.getType() != BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE) {
+                continue;
+            }
+
+            screen.showTooltip(
+                    graphics,
+                    List.of(
+                            Component.literal("Cartographer's Case Upgrade"),
+                            Component.literal("Compass slots must be empty!")
+                                    .withStyle(ChatFormatting.RED)
+                    ),
+                    mouseX,
+                    mouseY
+            );
+
+            return;
+        }
+    }
+
     private static int getTrashX(BackpackScreen screen) {
         return screen.screenLeft() + screen.layout().trashSlotX();
     }
@@ -416,7 +463,7 @@ public final class BackpackScreenPanels {
             BackpackScreen screen,
             GuiGraphicsExtractor graphics
     ) {
-        if (screen.handler().hasCraftingUpgradeSynced()) {
+        if (screen.handler().isCraftingPanelHiddenSynced()) {
             return;
         }
 
@@ -433,7 +480,7 @@ public final class BackpackScreenPanels {
             double mouseX,
             double mouseY
     ) {
-        if (screen.handler().hasCraftingUpgradeSynced()) {
+        if (screen.handler().isCraftingPanelHiddenSynced()) {
             return false;
         }
 

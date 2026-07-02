@@ -1,5 +1,6 @@
 package com.anantaya.adventurersbackpack.client;
 
+import com.anantaya.adventurersbackpack.client.hud.FabricCartographersCaseHud;
 import com.anantaya.adventurersbackpack.registry.ModMenus;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -13,5 +14,6 @@ public class BackpackClient implements ClientModInitializer {
         MenuScreens.register(ModMenus.BACKPACK_MENU_NETHERITE, BackpackScreen::new);
 
         BackpackKeyBindings.register();
+        FabricCartographersCaseHud.register();
     }
 }

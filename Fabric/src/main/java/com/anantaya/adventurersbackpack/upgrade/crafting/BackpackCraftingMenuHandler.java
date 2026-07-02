@@ -1,9 +1,14 @@
 package com.anantaya.adventurersbackpack.upgrade.crafting;
 
+import com.anantaya.adventurersbackpack.backpack.BackpackScreenHandler;
+import com.anantaya.adventurersbackpack.backpack.BackpackTier;
+import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
+import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -16,12 +21,22 @@ import java.util.Optional;
 
 public final class BackpackCraftingMenuHandler {
 
-    private final AbstractContainerMenu menu;
+    private final BackpackScreenHandler menu;
     private final TransientCraftingContainer craftSlots;
     private final ResultContainer resultSlots;
 
-    public BackpackCraftingMenuHandler(AbstractContainerMenu menu) {
+    private final Container backpackInventory;
+    private final BackpackTier tier;
+    private int syncedCraftingActive = 0;
+
+    public BackpackCraftingMenuHandler(
+            BackpackScreenHandler menu,
+            Container backpackInventory,
+            BackpackTier tier
+    ) {
         this.menu = menu;
+        this.backpackInventory = backpackInventory;
+        this.tier = tier;
         this.craftSlots = new TransientCraftingContainer(menu, 3, 3);
         this.resultSlots = new ResultContainer();
     }
@@ -46,6 +61,43 @@ public final class BackpackCraftingMenuHandler {
         }
 
         return false;
+    }
+
+    public void addDataSlots() {
+        menu.addMenuDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return hasUpgrade() ? 1 : 0;
+            }
+
+            @Override
+            public void set(int value) {
+                syncedCraftingActive = value;
+            }
+        });
+    }
+
+    public boolean hasUpgrade() {
+        return menu.hasUpgradeInstalled(
+                BackpackUpgradeItem.Type.CRAFTING
+        );
+    }
+
+    public boolean isCraftingPanelHiddenSynced() {
+        return syncedCraftingActive != 1;
+    }
+
+    public void slotsChanged(
+            Container container,
+            Player player
+    ) {
+        if (isCraftingContainer(container)) {
+            updateCraftingResult(player);
+        }
+    }
+
+    public void removed(Player player) {
+        returnCraftingGridToPlayer(player);
     }
 
     public void updateCraftingResult(Player player) {

@@ -3,7 +3,9 @@ package com.anantaya.adventurersbackpack.backpack;
 import com.anantaya.adventurersbackpack.menu.BackpackSlotRules;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import com.anantaya.adventurersbackpack.upgrade.crafting.BackpackCraftingResultSlot;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeData;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -24,8 +26,11 @@ public final class BackpackMenuSlotBuilder {
             BackpackMenuLayout layout,
             Container backpackInventory,
             Container extraStorageInventory,
+            Container cartographersCaseInventory,
+            Container nestedUpgradeInventory,
             Inventory playerInventory,
             ExtraStorageAccess extraStorageAccess,
+
             CraftingAccess craftingAccess
     ) {
         addMagicSlots(menu, tier, layout, backpackInventory);
@@ -37,6 +42,8 @@ public final class BackpackMenuSlotBuilder {
                 layout,
                 backpackInventory,
                 extraStorageInventory,
+                cartographersCaseInventory,
+                nestedUpgradeInventory,
                 craftingAccess
         );
 
@@ -53,6 +60,18 @@ public final class BackpackMenuSlotBuilder {
                 layout,
                 playerInventory,
                 craftingAccess
+        );
+
+        addCartographersCaseSlots(
+                menu,
+                layout,
+                cartographersCaseInventory
+        );
+
+        addNestedUpgradeSlots(
+                menu,
+                layout,
+                nestedUpgradeInventory
         );
 
         addPlayerInventorySlots(menu, layout, playerInventory);
@@ -109,8 +128,10 @@ public final class BackpackMenuSlotBuilder {
             BackpackMenuLayout layout,
             Container inventory,
             Container extraStorageInventory,
+            Container cartographersCaseInventory,
+            Container nestedUpgradeInventory,
             CraftingAccess craftingAccess
-    ){
+    ) {
         for (int i = 0; i < tier.upgradeSlots; i++) {
             final int slotIndex = tier.upgradeStart() + i;
 
@@ -141,6 +162,20 @@ public final class BackpackMenuSlotBuilder {
                             BackpackUpgradeItem.Type.EXTRA_STORAGE
                     )) {
                         return !hasAnyItem(extraStorageInventory);
+                    }
+
+                    if (BackpackUpgradeHelper.isUpgrade(
+                            stack,
+                            BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+                    )) {
+                        return !hasAnyItem(cartographersCaseInventory);
+                    }
+
+                    if (BackpackUpgradeHelper.isUpgrade(
+                            stack,
+                            BackpackUpgradeItem.Type.NESTED_UPGRADE
+                    )) {
+                        return !hasAnyItem(nestedUpgradeInventory);
                     }
 
                     return true;
@@ -254,6 +289,121 @@ public final class BackpackMenuSlotBuilder {
                     }
                 }
         ));
+    }
+
+    private static void addCartographersCaseSlots(
+            BackpackScreenHandler menu,
+            BackpackMenuLayout layout,
+            Container cartographersCaseInventory
+    ) {
+        int panelX = layout.upgradeSlotX() + 31;
+        int panelY = layout.upgradeSlotY(0);
+
+        int gridX = 5;
+        int gridY = 15;
+        int slotSize = 18;
+
+        for (int navigationSlot = 1; navigationSlot <= 8; navigationSlot++) {
+            final int compassInventoryIndex =
+                    CartographersCaseHelper.toCompassInventoryIndex(navigationSlot);
+
+            int col = navigationSlot % 3;
+            int row = navigationSlot / 3;
+
+            int x = panelX + gridX + col * slotSize;
+            int y = panelY + gridY + row * slotSize;
+
+            menu.addMenuSlot(new Slot(
+                    cartographersCaseInventory,
+                    compassInventoryIndex,
+                    x,
+                    y
+            ) {
+                @Override
+                public boolean mayPlace(@NonNull ItemStack stack) {
+                    return menu.hasCartographersCaseUpgrade()
+                            && CartographersCaseHelper.isValidLodestoneCompass(stack);
+                }
+
+                @Override
+                public boolean mayPickup(@NonNull Player player) {
+                    return menu.hasCartographersCaseUpgrade();
+                }
+
+                @Override
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                @Override
+                public int getMaxStackSize(@NonNull ItemStack stack) {
+                    return 1;
+                }
+
+                @Override
+                public boolean isActive() {
+                    return menu.isUpgradePanelOpen(BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE)
+                            && menu.hasCartographersCaseUpgrade();
+                }
+            });
+        }
+    }
+
+    private static void addNestedUpgradeSlots(
+            BackpackScreenHandler menu,
+            BackpackMenuLayout layout,
+            Container nestedUpgradeInventory
+    ) {
+        int panelX = layout.upgradeSlotX() + 31;
+        int panelY = layout.upgradeSlotY(0);
+
+        int gridX = 8;
+        int gridY = 8;
+        int slotSize = 18;
+
+        for (int i = 0; i < NestedUpgradeData.SLOT_COUNT; i++) {
+            final int nestedSlotIndex = i;
+
+            int col = i % 2;
+            int row = i / 2;
+
+            int x = panelX + gridX + col * slotSize;
+            int y = panelY + gridY + row * slotSize;
+
+            menu.addMenuSlot(new Slot(
+                    nestedUpgradeInventory,
+                    nestedSlotIndex,
+                    x,
+                    y
+            ) {
+                @Override
+                public boolean mayPlace(@NonNull ItemStack stack) {
+                    return menu.hasNestedUpgrade()
+                            && NestedUpgradeData.isAllowedNestedStack(stack);
+                }
+
+                @Override
+                public boolean mayPickup(@NonNull Player player) {
+                    return menu.hasNestedUpgrade();
+                }
+
+                @Override
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                @Override
+                public int getMaxStackSize(@NonNull ItemStack stack) {
+                    return 1;
+                }
+
+                @Override
+                public boolean isActive() {
+                    return menu.isUpgradePanelOpen(BackpackUpgradeItem.Type.NESTED_UPGRADE)
+                            && menu.hasNestedUpgrade();
+                }
+            });
+        }
     }
 
     private static void addPlayerInventorySlots(

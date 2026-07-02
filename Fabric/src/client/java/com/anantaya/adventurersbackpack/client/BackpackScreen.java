@@ -5,6 +5,7 @@ import com.anantaya.adventurersbackpack.backpack.BackpackScreenHandler;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiButton;
 import com.anantaya.adventurersbackpack.client.gui.BackpackGuiRenderer;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeConfigAction;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -88,19 +89,16 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
         BackpackScreenPanels.drawVisibleSlotFrames(this, graphics, x, y);
         BackpackGuiRenderer.drawLockedUpgradeSlots(graphics, layout, x, y);
 
-
-
-
-        super.extractContents(graphics, mouseX, mouseY, delta);
-
-        BackpackScreenButtonController.rebuildButtons(this, buttons);
-
         upgradePanel.draw(
                 this,
                 graphics,
                 mouseX,
                 mouseY
         );
+
+        super.extractContents(graphics, mouseX, mouseY, delta);
+
+        BackpackScreenButtonController.rebuildButtons(this, buttons);
 
         BackpackGuiRenderer.drawButtons(
                 graphics,
@@ -198,6 +196,10 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
             return false;
         }
 
+        if (upgradePanel.isInsideSelectedPanel(this, mouseX, mouseY)) {
+            return false;
+        }
+
         return super.hasClickedOutside(mouseX, mouseY, left, top);
     }
 
@@ -252,6 +254,10 @@ public class BackpackScreen extends AbstractContainerScreen<BackpackScreenHandle
 
     public BackpackScreenHandler handler() {
         return this.menu;
+    }
+
+    public Minecraft minecraftClient() {
+        return this.minecraft;
     }
 
     public int screenLeft() {

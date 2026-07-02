@@ -3,10 +3,15 @@ package com.anantaya.adventurersbackpack.event;
 import com.anantaya.adventurersbackpack.backpack.BackpackItem;
 import com.anantaya.adventurersbackpack.backpack.BackpackTier;
 
+import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeHelper;
+import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseData;
+import com.anantaya.adventurersbackpack.upgrade.cartography.CartographersCaseHelper;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -137,7 +142,7 @@ public class BackpackDeathEventHandler {
     private static void saveBackpackBeforeDeath(ServerPlayer player) {
         System.out.println("[Backpack] ALLOW_DEATH fired for " + player.getName().getString());
 
-        HolderLookup.Provider registries = player.level().getServer().registryAccess();
+        RegistryAccess registries = player.level().getServer().registryAccess();
 
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
@@ -150,53 +155,45 @@ public class BackpackDeathEventHandler {
 
             BackpackTier tier = backpackItem.getTier();
 
+            if (BackpackUpgradeHelper.hasUpgrade(
+                    stack,
+                    BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE,
+                    tier,
+                    registries
+            )) {
+                CartographersCaseData.saveDeathTarget(player, stack);
+                CartographersCaseData.setActiveSlot(
+                        stack,
+                        CartographersCaseHelper.DEATH_SIGNAL_SLOT
+                );
+
+                System.out.println("[Backpack] Cartographer's Case saved death signal for "
+                        + player.getName().getString());
+            }
+
             CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
 
             if (customData != null) {
                 CompoundTag tag = customData.copyTag();
 
-                /*
-                 * Keep only protected slots.
-                 *
-                 * Protected slots:
-                 * Slot 0 -> Slot protectedSlots - 1
-                 *
-                 * Everything after protected slots drops:
-                 * normal storage + upgrade slots.
-                 */
                 dropAndRemoveUnprotectedMainSlots(
                         player,
                         tag,
                         tier,
                         registries
                 );
-
-                /*
-                 * Optional penalty:
-                 * Drop 1 random protected slot item on death.
-                 */
                 dropOneRandomProtectedSlot(
                         player,
                         tag,
                         tier,
                         registries
                 );
-
-                /*
-                 * Extra storage does not survive death.
-                 * It is saved as:
-                 * ExtraStorage -> Slot0, Slot1, Slot2...
-                 */
                 dropAndRemoveExtraStorage(
                         player,
                         tag,
                         registries
                 );
 
-                /*
-                 * Fluid storage does not survive death.
-                 * Exact keys from BackpackFluidStorageHelper.
-                 */
                 tag.remove("BackpackProFluidType");
                 tag.remove("BackpackProFluidAmount");
 
@@ -235,6 +232,12 @@ public class BackpackDeathEventHandler {
             }
 
             ItemStack toDrop = readItemStack(invTag, key, registries);
+
+            if (shouldKeepSlotOnDeath(toDrop)) {
+                System.out.println("[Backpack] Kept protected death-bound upgrade slot "
+                        + s + ": " + toDrop);
+                continue;
+            }
 
             if (!toDrop.isEmpty()) {
                 player.drop(toDrop, true);
@@ -341,6 +344,13 @@ public class BackpackDeathEventHandler {
                 System.out.println("[Backpack] Broken backpack dropped extra storage " + key + ": " + toDrop);
             }
         }
+    }
+
+    private static boolean shouldKeepSlotOnDeath(ItemStack stack) {
+        return BackpackUpgradeHelper.isUpgrade(
+                stack,
+                BackpackUpgradeItem.Type.CARTOGRAPHERS_CASE
+        );
     }
 
     private static ItemStack readItemStack(
