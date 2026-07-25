@@ -25,7 +25,7 @@ public final class BackpackAutoPickupHelper {
     }
 
     public static void tick(ServerPlayer player) {
-        if (player.isSpectator()) {
+        if (player == null || player.isSpectator()) {
             return;
         }
 

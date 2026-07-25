@@ -36,6 +36,10 @@ public final class BackpackStorageHelper {
             BackpackTier tier,
             ItemStack incomingStack
     ) {
+        if (backpackInventory == null || tier == null || incomingStack == null || incomingStack.isEmpty()) {
+            return new InsertResult(ItemStack.EMPTY, 0);
+        }
+
         ItemStack remaining = incomingStack.copy();
         int originalCount = remaining.getCount();
 

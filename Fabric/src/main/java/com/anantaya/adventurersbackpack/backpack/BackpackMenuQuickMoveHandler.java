@@ -19,7 +19,7 @@ public final class BackpackMenuQuickMoveHandler {
     ) {
         Slot slot = menu.slots.get(index);
 
-        if (!slot.mayPickup(player)) {
+        if (player == null || !slot.mayPickup(player)) {
             return ItemStack.EMPTY;
         }
 

@@ -443,7 +443,8 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
 
             return !stack.isEmpty()
                     && stack.getItem() instanceof BackpackItem
-                    && ((BackpackItem) stack.getItem()).getTier() == tier;
+                    && ((BackpackItem) stack.getItem()).getTier() == tier
+                    && ItemStack.isSameItemSameComponents(stack, backpackStack);
         }
 
         return false;
@@ -486,7 +487,9 @@ public class BackpackScreenHandler extends AbstractContainerMenu {
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
 
-            if (stack == targetStack) {
+            if (!stack.isEmpty()
+                    && stack.getItem() instanceof BackpackItem
+                    && ItemStack.isSameItemSameComponents(stack, targetStack)) {
                 return i;
             }
         }

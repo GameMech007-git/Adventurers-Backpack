@@ -35,6 +35,7 @@ dependencies {
 	// LambDynamicLights for dev compile + runtime
 	implementation "dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.12.2+26.2"
 
+	testImplementation "junit:junit:4.13.2"
 }
 
 processResources {

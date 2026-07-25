@@ -1,5 +1,6 @@
 package com.anantaya.adventurersbackpack.upgrade.nested;
 
+import com.anantaya.adventurersbackpack.AdventurersBackpack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -45,6 +46,7 @@ public final class NestedUpgradeInventory extends SimpleContainer {
         loading = true;
 
         for (int i = 0; i < getContainerSize(); i++) {
+            final int slot = i;
             ItemStack stack = nestedTag.getCompound(NestedUpgradeData.SLOT_PREFIX + i)
                     .flatMap(itemTag -> ItemStack.CODEC
                             .parse(
@@ -53,7 +55,10 @@ public final class NestedUpgradeInventory extends SimpleContainer {
                             )
                             .result()
                     )
-                    .orElse(ItemStack.EMPTY);
+                    .orElseGet(() -> {
+                        AdventurersBackpack.LOGGER.warn("[Backpack] Failed to parse nested upgrade data for slot {}", slot);
+                        return ItemStack.EMPTY;
+                    });
 
             super.setItem(i, stack);
         }
@@ -93,6 +98,10 @@ public final class NestedUpgradeInventory extends SimpleContainer {
 
             if (!NestedUpgradeData.isAllowedNestedStack(stack)) {
                 continue;
+            }
+
+            if (stack.getCount() > 1) {
+                stack = stack.copyWithCount(1);
             }
 
             ItemStack copy = stack.copy();

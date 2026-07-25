@@ -1,5 +1,6 @@
 package com.anantaya.adventurersbackpack.backpack;
 
+import com.anantaya.adventurersbackpack.AdventurersBackpack;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -39,10 +40,14 @@ public class BackpackInventory extends SimpleContainer {
             Optional<CompoundTag> itemTagOptional = invTag.getCompound(key);
 
             if (itemTagOptional.isPresent()) {
+                final int slot = i;
                 item = ItemStack.CODEC
                         .parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTagOptional.get())
                         .result()
-                        .orElse(ItemStack.EMPTY);
+                        .orElseGet(() -> {
+                            AdventurersBackpack.LOGGER.warn("[Backpack] Failed to parse item data for slot {}", slot);
+                            return ItemStack.EMPTY;
+                        });
             }
 
             setItem(i, item);

@@ -209,7 +209,9 @@ public class BackpackNetworking {
         player.openMenu(new SimpleMenuProvider(
                 (syncId, playerInv, p) -> {
                     ItemStack latest = p.getInventory().getItem(slot);
-                    if (latest.isEmpty() || !(latest.getItem() instanceof BackpackItem)) {
+                    if (latest.isEmpty()
+                            || !(latest.getItem() instanceof BackpackItem)
+                            || !ItemStack.isSameItemSameComponents(latest, ref)) {
                         latest = ref;
                     }
                     return new BackpackScreenHandler(

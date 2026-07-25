@@ -41,6 +41,15 @@ public final class CartographersCaseData {
             activeSlot = CartographersCaseHelper.NO_ACTIVE_SLOT;
         }
 
+        if (activeSlot == CartographersCaseHelper.DEATH_SIGNAL_SLOT) {
+            return;
+        }
+
+        if (activeSlot != CartographersCaseHelper.NO_ACTIVE_SLOT
+                && !CartographersCaseHelper.isCompassSlotIndex(activeSlot)) {
+            activeSlot = CartographersCaseHelper.NO_ACTIVE_SLOT;
+        }
+
         CompoundTag fullTag = getFullCustomTag(backpackStack);
         CompoundTag root = getCartographersCaseRoot(fullTag);
 
@@ -151,7 +160,7 @@ public final class CartographersCaseData {
                         itemTagOptional.get()
                 )
                 .result()
-                .orElse(ItemStack.EMPTY);
+                .orElseGet(() -> ItemStack.EMPTY);
     }
 
     public static boolean setCompass(

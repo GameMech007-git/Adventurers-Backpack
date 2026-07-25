@@ -202,7 +202,7 @@ public class BackpackDeathEventHandler {
 
             ItemStack backpackCopy = stack.copy();
 
-            savedBackpacks.put(player.getUUID(), backpackCopy);
+            savedBackpacks.putIfAbsent(player.getUUID(), backpackCopy);
             player.getInventory().setItem(i, ItemStack.EMPTY);
 
             System.out.println("[Backpack] ✓ Saved backpack for "

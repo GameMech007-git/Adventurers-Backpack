@@ -63,7 +63,7 @@ public final class NestedUpgradeData {
                             itemTagOptional.get()
                     )
                     .result()
-                    .orElse(ItemStack.EMPTY);
+                    .orElseGet(() -> ItemStack.EMPTY);
 
             if (isNestedUpgrade(nestedStack, type)) {
                 return true;

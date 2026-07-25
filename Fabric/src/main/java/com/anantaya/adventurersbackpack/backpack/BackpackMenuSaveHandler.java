@@ -34,6 +34,10 @@ public final class BackpackMenuSaveHandler {
             nestedUpgradeMenuHandler.saveToBackpack();
             extraStorageMenuHandler.setChanged();
 
+            if (player != null && !player.level().isClientSide()) {
+                player.getInventory().setChanged();
+            }
+
             if (!player.level().isClientSide()) {
                 BackpackUpgradeHelper.hasUpgrade(
                         backpackStack,
@@ -47,6 +51,10 @@ public final class BackpackMenuSaveHandler {
             extraStorageMenuHandler.setChanged();
             cartographersCaseMenuHandler.saveToBackpack();
             nestedUpgradeMenuHandler.saveToBackpack();
+
+            if (player != null && !player.level().isClientSide()) {
+                player.getInventory().setChanged();
+            }
 
             if (blockEntity != null) {
                 blockEntity.loadCartographersCaseFromBackpackStack(backpackStack);

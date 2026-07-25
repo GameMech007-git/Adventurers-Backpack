@@ -3,6 +3,7 @@ package com.anantaya.adventurersbackpack.backpack;
 import com.anantaya.adventurersbackpack.menu.BackpackSlotRules;
 import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import net.minecraft.world.Container;
+import com.anantaya.adventurersbackpack.upgrade.nested.NestedUpgradeData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -56,12 +57,14 @@ public final class BackpackMenuTransferHelper {
     }
 
     public boolean moveFromPlayerToBackpack(ItemStack stackInSlot) {
+        if (stackInSlot.isEmpty()) {
+            return false;
+        }
+
         if (stackInSlot.getItem() instanceof BackpackUpgradeItem) {
-            return menu.moveStackToRange(
+            return moveIntoPreferredRanges(
                     stackInSlot,
-                    tier.upgradeStart(),
-                    tier.totalSlots,
-                    false
+                    getPreferredTransferRanges(stackInSlot, tier, extraStorageSlots, true)
             );
         }
 
@@ -73,41 +76,86 @@ public final class BackpackMenuTransferHelper {
             return false;
         }
 
-        if (menu.moveStackToRange(
+        return moveIntoPreferredRanges(
                 stack,
-                0,
-                tier.protectedSlots,
-                false
-        )) {
-            return true;
+                getPreferredTransferRanges(
+                        stack,
+                        tier,
+                        extraStorageSlots,
+                        extraStorageAccess.canUseExtraStorageSlots()
+                )
+        );
+    }
+
+    private boolean moveIntoPreferredRanges(ItemStack stack, int[][] ranges) {
+        if (stack.isEmpty()) {
+            return false;
         }
 
-        if (menu.moveStackToRange(
-                stack,
-                tier.normalStart(),
-                tier.upgradeStart(),
-                false
-        )) {
-            return true;
+        int originalCount = stack.getCount();
+        boolean moved = false;
+
+        for (int[] range : ranges) {
+            if (stack.isEmpty() || range == null || range.length != 2) {
+                break;
+            }
+
+            int start = range[0];
+            int end = range[1];
+
+            if (start >= end) {
+                continue;
+            }
+
+            if (menu.moveStackToRange(stack, start, end, false)) {
+                if (stack.getCount() < originalCount) {
+                    moved = true;
+                    originalCount = stack.getCount();
+                }
+            }
         }
 
-        if (extraStorageAccess.canUseExtraStorageSlots()) {
-            return menu.moveStackToRange(
-                    stack,
-                    extraStorageStart(),
-                    extraStorageEnd(),
-                    false
-            );
+        return moved;
+    }
+
+    static int[][] getPreferredTransferRanges(
+            ItemStack stack,
+            BackpackTier tier,
+            int extraStorageSlots,
+            boolean includeExtraStorage
+    ) {
+        if (stack.isEmpty()) {
+            return new int[0][];
         }
 
-        return false;
+        if (stack.getItem() instanceof BackpackUpgradeItem) {
+            return new int[][] {
+                    {tier.upgradeStart(), tier.upgradeStart() + tier.upgradeSlots}
+            };
+        }
+
+        int[][] ranges = new int[includeExtraStorage ? 3 : 2][];
+        ranges[0] = new int[] {0, tier.protectedSlots};
+        ranges[1] = new int[] {tier.normalStart(), tier.upgradeStart()};
+
+        if (includeExtraStorage) {
+            ranges[2] = new int[] {tier.totalSlots, tier.totalSlots + extraStorageSlots};
+        }
+
+        return ranges;
     }
 
     public boolean movePlayerInventoryToBackpackSkippingHotbar() {
         boolean changed = false;
 
-        for (int index = playerMainInventoryStart(); index < playerMainInventoryEnd(); index++) {
-            if (moveSinglePlayerSlotToBackpack(index)) {
+        for (int playerInventorySlot = 9; playerInventorySlot < 36; playerInventorySlot++) {
+            int menuIndex = playerInventoryMenuIndex(playerInventorySlot);
+
+            if (menuIndex < 0) {
+                continue;
+            }
+
+            if (moveSinglePlayerSlotToBackpack(menuIndex)) {
                 changed = true;
             }
         }
@@ -205,7 +253,7 @@ public final class BackpackMenuTransferHelper {
             return false;
         }
 
-        if (stackInSlot.getItem() instanceof BackpackUpgradeItem) {
+        if (stackInSlot.isEmpty() || stackInSlot.getItem() instanceof BackpackUpgradeItem) {
             return false;
         }
 
@@ -251,6 +299,14 @@ public final class BackpackMenuTransferHelper {
         return playerMainInventoryStart() + 27;
     }
 
+    int playerInventoryMenuIndex(int playerInventorySlot) {
+        if (playerInventorySlot < 9 || playerInventorySlot >= 36) {
+            return -1;
+        }
+
+        return playerMainInventoryStart() + (playerInventorySlot - 9);
+    }
+
     public int hotbarStart() {
         return playerMainInventoryEnd();
     }
@@ -288,7 +344,10 @@ public final class BackpackMenuTransferHelper {
     }
 
     public int playerInventoryStart() {
-        return craftingEnd();
+        // Player inventory slots are added after crafting, cartographers case, and nested upgrade slots.
+        // Crafting slots (inputs + result) are counted by craftingEnd(). Cartographers case adds 8
+        // navigation slots and nested upgrades add NestedUpgradeData.SLOT_COUNT slots.
+        return craftingEnd() + 8 + NestedUpgradeData.SLOT_COUNT;
     }
 
     public boolean isCraftingInputSlot(int index) {

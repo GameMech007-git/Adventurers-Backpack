@@ -42,29 +42,50 @@ public class BackpackItem extends BlockItem {
     }
 
 
+    public static int sanitizeDurability(int durability, int maxDurability) {
+        return BackpackDurability.sanitizeDurability(durability, maxDurability);
+    }
+
     public static int getDurability(ItemStack stack) {
+        if (!(stack.getItem() instanceof BackpackItem backpackItem)) {
+            return 0;
+        }
+
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
         CompoundTag tag = (data != null) ? data.copyTag() : new CompoundTag();
 
         if (!tag.contains(DURABILITY_KEY)) {
-            BackpackTier t = ((BackpackItem) stack.getItem()).tier;
-            tag.putInt(DURABILITY_KEY, t.maxDurability);
+            BackpackTier t = backpackItem.tier;
+            int defaultDurability = sanitizeDurability(t.maxDurability, t.maxDurability);
+            tag.putInt(DURABILITY_KEY, defaultDurability);
 
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-            return t.maxDurability;
+            return defaultDurability;
         }
 
-        return tag.getInt(DURABILITY_KEY).orElse(0);
+        int rawDurability = tag.getInt(DURABILITY_KEY).orElse(0);
+        int sanitizedDurability = sanitizeDurability(rawDurability, backpackItem.tier.maxDurability);
+
+        if (rawDurability != sanitizedDurability) {
+            tag.putInt(DURABILITY_KEY, sanitizedDurability);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+
+        return sanitizedDurability;
     }
 
     public static void setDurability(ItemStack stack, int value) {
+        if (!(stack.getItem() instanceof BackpackItem backpackItem)) {
+            return;
+        }
+
         CustomData data = stack.getOrDefault(
                 DataComponents.CUSTOM_DATA,
                 CustomData.EMPTY
         );
 
         CompoundTag tag = data.copyTag();
-        tag.putInt(DURABILITY_KEY, value);
+        tag.putInt(DURABILITY_KEY, sanitizeDurability(value, backpackItem.tier.maxDurability));
 
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
@@ -77,12 +98,14 @@ public class BackpackItem extends BlockItem {
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return Math.round(13.0f * getDurability(stack) / tier.maxDurability);
+        int maxDurability = Math.max(1, tier.maxDurability);
+        return Math.round(13.0f * getDurability(stack) / maxDurability);
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
-        float fraction = (float) getDurability(stack) / tier.maxDurability;
+        int maxDurability = Math.max(1, tier.maxDurability);
+        float fraction = (float) getDurability(stack) / maxDurability;
 
         int r = (int) Math.min(255, 255 * (1.0f - fraction) * 2);
         int g = (int) Math.min(255, 255 * fraction * 2);
@@ -100,7 +123,7 @@ public class BackpackItem extends BlockItem {
             TooltipFlag flag
     ) {
         int dur = getDurability(stack);
-        int maxDur = tier.maxDurability;
+        int maxDur = Math.max(1, tier.maxDurability);
 
         ChatFormatting colour = dur <= 1 ? ChatFormatting.RED
                 : dur <= maxDur / 2 ? ChatFormatting.YELLOW

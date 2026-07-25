@@ -1,5 +1,6 @@
 package com.anantaya.adventurersbackpack.upgrade.extrastorage;
 
+import com.anantaya.adventurersbackpack.AdventurersBackpack;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -54,6 +55,7 @@ public class ExtraStorageInventory extends SimpleContainer {
         CompoundTag extraTag = extraTagOptional.get();
 
         for (int i = 0; i < getContainerSize(); i++) {
+            final int slot = i;
             String key = SLOT_PREFIX + i;
 
             Optional<CompoundTag> itemTagOptional = extraTag.getCompound(key);
@@ -68,7 +70,10 @@ public class ExtraStorageInventory extends SimpleContainer {
                             itemTagOptional.get()
                     )
                     .result()
-                    .orElse(ItemStack.EMPTY);
+                    .orElseGet(() -> {
+                        AdventurersBackpack.LOGGER.warn("[Backpack] Failed to parse extra storage data for slot {}", slot);
+                        return ItemStack.EMPTY;
+                    });
 
             setItem(i, item);
         }

@@ -26,8 +26,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 public class BackpackBlockEntity extends BlockEntity {
-
+    private static final String INVENTORY_KEY = "Inventory";
     private static final String EXTRA_STORAGE_KEY = "ExtraStorage";
+
     private static final String CARTOGRAPHERS_CASE_KEY = "CartographersCase";
 
     private CompoundTag cartographersCaseTag = new CompoundTag();
@@ -120,16 +121,21 @@ public class BackpackBlockEntity extends BlockEntity {
             return;
         }
 
-        this.extraStorageItems.set(slot, stack);
+        ItemStack sanitized = stack == null ? ItemStack.EMPTY : stack;
+        this.extraStorageItems.set(slot, sanitized);
 
-        if (!stack.isEmpty() && stack.getCount() > stack.getMaxStackSize()) {
-            stack.setCount(stack.getMaxStackSize());
+        if (!sanitized.isEmpty() && sanitized.getCount() > sanitized.getMaxStackSize()) {
+            sanitized.setCount(sanitized.getMaxStackSize());
         }
 
         setChanged();
     }
 
     public ItemStack createDroppedBackpackStack(RegistryAccess registryAccess) {
+        if (registryAccess == null) {
+            return ItemStack.EMPTY;
+        }
+
         ItemStack drop = switch (this.tier) {
             case IRON -> new ItemStack(ModItems.BACKPACK_IRON);
             case DIAMOND -> new ItemStack(ModItems.BACKPACK_DIAMOND);
@@ -177,6 +183,10 @@ public class BackpackBlockEntity extends BlockEntity {
             ItemStack stack,
             RegistryAccess registryAccess
     ) {
+        if (stack == null || stack.isEmpty() || registryAccess == null) {
+            return;
+        }
+
         BackpackInventory itemInventory = new BackpackInventory(
                 stack,
                 this.tier.totalSlots,
@@ -226,7 +236,8 @@ public class BackpackBlockEntity extends BlockEntity {
             return ItemStack.EMPTY;
         }
 
-        return this.items.get(slot);
+        ItemStack stack = this.items.get(slot);
+        return stack == null ? ItemStack.EMPTY : stack;
     }
 
 
@@ -255,10 +266,11 @@ public class BackpackBlockEntity extends BlockEntity {
             return;
         }
 
-        this.items.set(slot, stack);
+        ItemStack sanitized = stack == null ? ItemStack.EMPTY : stack;
+        this.items.set(slot, sanitized);
 
-        if (!stack.isEmpty() && stack.getCount() > stack.getMaxStackSize()) {
-            stack.setCount(stack.getMaxStackSize());
+        if (!sanitized.isEmpty() && sanitized.getCount() > sanitized.getMaxStackSize()) {
+            sanitized.setCount(sanitized.getMaxStackSize());
         }
 
         setChanged();

@@ -172,7 +172,9 @@ public class BackpackBlock extends BaseEntityBlock {
                     level.registryAccess()
             );
 
-            Block.popResource(level, pos, drop);
+            if (drop != null && !drop.isEmpty()) {
+                Block.popResource(level, pos, drop);
+            }
 
             if (level instanceof ServerLevel serverLevel) {
                 state.spawnAfterBreak(serverLevel, pos, destroyedWith, true);
@@ -197,6 +199,11 @@ public class BackpackBlock extends BaseEntityBlock {
         BlockEntity blockEntity = level.getBlockEntity(pos);
 
         if (!(blockEntity instanceof BackpackBlockEntity backpackBlockEntity)) {
+            return;
+        }
+
+        if (itemStack == null || itemStack.isEmpty()) {
+            backpackBlockEntity.setChanged();
             return;
         }
 

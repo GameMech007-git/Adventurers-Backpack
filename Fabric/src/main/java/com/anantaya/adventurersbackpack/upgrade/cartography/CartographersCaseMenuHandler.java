@@ -113,6 +113,10 @@ public final class CartographersCaseMenuHandler {
             return;
         }
 
+        if (cartographersCaseInventory == null) {
+            return;
+        }
+
         if (!CartographersCaseHelper.isCompassSlotIndex(navigationSlot)) {
             return;
         }

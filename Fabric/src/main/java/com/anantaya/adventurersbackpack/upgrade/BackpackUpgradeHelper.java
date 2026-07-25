@@ -64,7 +64,7 @@ public final class BackpackUpgradeHelper {
                             itemTagOptional.get()
                     )
                     .result()
-                    .orElse(ItemStack.EMPTY);
+                    .orElseGet(() -> ItemStack.EMPTY);
 
             if (isUpgrade(upgradeStack, type)) {
                 return true;
