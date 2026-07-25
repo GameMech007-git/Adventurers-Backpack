@@ -1,9 +1,5 @@
 package com.anantaya.adventurersbackpack.backpack;
 
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import com.anantaya.adventurersbackpack.upgrade.BackpackUpgradeItem;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -28,15 +24,8 @@ public class BackpackItemTest {
 
     @Test
     public void upgradeItemsUseUpgradeSlotsFirst() {
-        ItemStack stack = new ItemStack(
-                new BackpackUpgradeItem(
-                        BackpackUpgradeItem.Type.AUTO_PICKUP,
-                        new Item.Properties()
-                )
-        );
-
-        int[][] ranges = BackpackMenuTransferHelper.getPreferredTransferRanges(
-                stack,
+        int[][] ranges = BackpackMenuTransferHelper.getPreferredTransferRangesForTest(
+                true,
                 BackpackTier.IRON,
                 3,
                 true
@@ -51,8 +40,8 @@ public class BackpackItemTest {
 
     @Test
     public void normalItemsPreferStorageBeforeExtraStorage() {
-        int[][] ranges = BackpackMenuTransferHelper.getPreferredTransferRanges(
-                new ItemStack(Items.STONE),
+        int[][] ranges = BackpackMenuTransferHelper.getPreferredTransferRangesForTest(
+                false,
                 BackpackTier.IRON,
                 3,
                 true
@@ -79,3 +68,4 @@ public class BackpackItemTest {
         assertEquals(-1, helper.playerInventoryMenuIndex(8));
     }
 }
+

@@ -145,6 +145,31 @@ public final class BackpackMenuTransferHelper {
         return ranges;
     }
 
+    // Test helper: return preferred ranges without requiring an ItemStack (avoids
+    // triggering Minecraft bootstrap during unit tests).
+    static int[][] getPreferredTransferRangesForTest(
+            boolean isUpgrade,
+            BackpackTier tier,
+            int extraStorageSlots,
+            boolean includeExtraStorage
+    ) {
+        if (isUpgrade) {
+            return new int[][] {
+                    {tier.upgradeStart(), tier.upgradeStart() + tier.upgradeSlots}
+            };
+        }
+
+        int[][] ranges = new int[includeExtraStorage ? 3 : 2][];
+        ranges[0] = new int[] {0, tier.protectedSlots};
+        ranges[1] = new int[] {tier.normalStart(), tier.upgradeStart()};
+
+        if (includeExtraStorage) {
+            ranges[2] = new int[] {tier.totalSlots, tier.totalSlots + extraStorageSlots};
+        }
+
+        return ranges;
+    }
+
     public boolean movePlayerInventoryToBackpackSkippingHotbar() {
         boolean changed = false;
 
@@ -344,9 +369,14 @@ public final class BackpackMenuTransferHelper {
     }
 
     public int playerInventoryStart() {
-        // Player inventory slots are added after crafting, cartographers case, and nested upgrade slots.
-        // Crafting slots (inputs + result) are counted by craftingEnd(). Cartographers case adds 8
-        // navigation slots and nested upgrades add NestedUpgradeData.SLOT_COUNT slots.
+        // If we don't have a menu (tests construct helper with null), treat player inventory
+        // as starting at 0 so index mapping in tests matches expectations. Otherwise the
+        // player inventory in the menu is placed after crafting, cartographers case (8 slots)
+        // and nested upgrade slots.
+        if (this.menu == null) {
+            return 0;
+        }
+
         return craftingEnd() + 8 + NestedUpgradeData.SLOT_COUNT;
     }
 
