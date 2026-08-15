@@ -4,6 +4,10 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import net.minecraft.world.InteractionResult;
 
 public class BackpackItemTest {
 
@@ -66,6 +70,14 @@ public class BackpackItemTest {
         assertEquals(0, helper.playerInventoryMenuIndex(9));
         assertEquals(26, helper.playerInventoryMenuIndex(35));
         assertEquals(-1, helper.playerInventoryMenuIndex(8));
+    }
+
+    @Test
+    public void blockPlacementDoesNotOpenBackpackMenu() {
+        assertFalse(BackpackPlacementDecision.shouldOpenBackpackMenu(InteractionResult.SUCCESS));
+        assertFalse(BackpackPlacementDecision.shouldOpenBackpackMenu(InteractionResult.CONSUME));
+        assertTrue(BackpackPlacementDecision.shouldOpenBackpackMenu(InteractionResult.PASS));
+        assertTrue(BackpackPlacementDecision.shouldOpenBackpackMenu(InteractionResult.FAIL));
     }
 }
 

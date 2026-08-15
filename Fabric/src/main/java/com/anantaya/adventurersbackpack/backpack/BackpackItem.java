@@ -145,6 +145,18 @@ public class BackpackItem extends BlockItem {
     public InteractionResult useOn(UseOnContext context) {
         Player player = context.getPlayer();
 
+        if (BackpackPlacementDecision.shouldDeferToPlacement(
+                context.getLevel(),
+                context.getClickedPos(),
+                context.getClickedFace()
+        )) {
+            InteractionResult placementResult = super.useOn(context);
+            if (placementResult.consumesAction()) {
+                return placementResult;
+            }
+            return placementResult;
+        }
+
         if (player != null && context.isSecondaryUseActive()) {
             Level level = context.getLevel();
 
@@ -173,7 +185,14 @@ public class BackpackItem extends BlockItem {
             return super.useOn(context);
         }
 
-        if (!context.getLevel().isClientSide() && player instanceof ServerPlayer serverPlayer) {
+        InteractionResult placementResult = super.useOn(context);
+        if (placementResult.consumesAction()) {
+            return placementResult;
+        }
+
+        if (BackpackPlacementDecision.shouldOpenBackpackMenu(placementResult)
+                && !context.getLevel().isClientSide()
+                && player instanceof ServerPlayer serverPlayer) {
             ItemStack stack = context.getItemInHand();
 
             serverPlayer.openMenu(new MenuProvider() {
@@ -217,6 +236,10 @@ public class BackpackItem extends BlockItem {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        if (player != null && player.isInWater()) {
+            return super.use(level, player, hand);
+        }
+
         ItemStack stack = player.getItemInHand(hand);
 
         if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
